@@ -446,8 +446,10 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
     </section>
 
     <section id="v-set" class="view"><div class="row" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
-      <div class="card"><h3>Supabase (Conexión)</h3><div class="f" style="gap:10px">
-        <div class="f"><label for="sUrl">URL de Supabase</label><input id="sUrl" readonly></div>
+     <div class="card"><h3>Personalización del Local</h3><div class="f" style="gap:10px">
+        <div class="f"><label for="sName">Nombre del Local</label><input id="sName"></div>
+        <div class="f"><label for="sLogoFile">Subir Logotipo del Local (Imagen)</label><input id="sLogoFile" type="file" accept="image/*"></div>
+        <div class="f"><label for="sLogo">O URL del Logotipo</label><input id="sLogo" placeholder="https://…/logo.png"></div>
       </div></div>
       <div class="card"><h3>Personalización del Local</h3><div class="f" style="gap:10px">
         <div class="f"><label for="sName">Nombre del Local</label><input id="sName"></div>
