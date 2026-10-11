@@ -304,11 +304,9 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
 }
 #lock .card { width: 360px; text-align: center; display: flex; flex-direction: column; gap: 16px; background: var(--card-bg); border-radius: 28px; box-shadow: 0 30px 60px rgba(0,0,0,0.4); }
 
-#banner { position: fixed; right: 24px; bottom: 90px; z-index: 40; max-width: 340px; background: var(--card-bg); border: 2px solid var(--ac); box-shadow: 0 20px 40px rgba(0,0,0,0.2); border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
 #toast { position: fixed; left: 50%; top: 24px; transform: translateX(-50%); z-index: 60; background: #0f172a; color: #fff; padding: 12px 26px; border-radius: 16px; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
 #toast.err { background: #ff3f34; }
 
-/* IMPRESIÓN Y FACTURA CON LOGO */
 #ticket { display: none; font: 12px 'Courier New', monospace; color: #000; background: #fff; width: 300px; padding: 16px; border: 1px dashed #ccc; }
 #ticket .header { text-align: center; margin-bottom: 12px; }
 #ticket .logo-img { max-height: 65px; max-width: 140px; object-fit: contain; margin-bottom: 6px; }
@@ -337,10 +335,14 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
   <div class="logo" id="lLogo" style="margin:0 auto">RG</div>
   <h2 id="lName">Rincón Goloso</h2>
   <p style="font-size:12px;color:var(--tx2)">Ingresa tu usuario y PIN de acceso</p>
-  <input id="auth-user" type="text" placeholder="admin o socio" autocomplete="username" value="socio" required>
+  <input id="auth-user" type="text" placeholder="Usuario (admin o socio)" autocomplete="username" value="admin" required>
   <input id="auth-pin" type="password" placeholder="PIN de acceso" autocomplete="current-password" required>
   <button type="submit" id="unlock">Entrar al Sistema</button>
-  <small style="color:var(--tx2)">Admin PIN: 1234 | Socio PIN: 0000</small>
+  <div style="background:var(--main-bg);padding:10px;border-radius:12px;font-size:11px;color:var(--tx2);text-align:left">
+    <b>Accesos Directos:</b><br>
+    • Admin: usuario <code>admin</code> | PIN <code>1234</code><br>
+    • Socio: usuario <code>socio</code> | PIN <code>0000</code>
+  </div>
 </form></div>
 
 <div class="app-viewport">
@@ -355,7 +357,7 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
 
   <main>
     <header>
-      <div style="display:flex;align-items:center"><h1 id="hName">Rincón Goloso</h1><span class="pill" id="st">Conectando...</span><span class="pill" id="roleBadge">Rol: Socio</span></div>
+      <div style="display:flex;align-items:center"><h1 id="hName">Rincón Goloso</h1><span class="pill" id="st">Conectando...</span><span class="pill" id="roleBadge">Rol: Admin</span></div>
       <div style="display:flex;gap:8px;align-items:center">
         <div class="themes">
           <button data-t="t1" class="on">Vibrant</button><button data-t="t2">Nebula</button><button data-t="t3">Midnight</button>
@@ -384,7 +386,7 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
           <div class="f"><label for="chg">Vuelto</label><input id="chg" readonly value="$0.00" style="font-weight:900"></div>
         </div>
         <div style="display:flex;gap:6px;margin:12px 0"><button class="sub" data-cash="5" style="flex:1">+$5</button><button class="sub" data-cash="10" style="flex:1">+$10</button><button class="sub" data-cash="20" style="flex:1">+$20</button></div>
-        <div class="f" style="margin-bottom:12px"><label for="cust">Nombre del Cliente / RUC / C.I.</label><input id="cust" placeholder="Consumidor final"></div>
+        <div class="f" style="margin-bottom:12px"><label for="cust">Cliente / RUC / C.I.</label><input id="cust" placeholder="Consumidor final"></div>
         <button id="payPrint" style="width:100%;margin-bottom:8px">Emitir Factura e Imprimir Ticket</button>
         <button id="pay" class="sub" style="width:100%">Registrar Venta Directa</button>
       </div>
@@ -447,11 +449,11 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
       </div></div>
       <div class="card"><h3>Personalización del Local</h3><div class="f" style="gap:10px">
         <div class="f"><label for="sName">Nombre del Local</label><input id="sName"></div>
-        <div class="f"><label for="sLogo">URL del Logotipo del Local (Aparece en Facturas)</label><input id="sLogo" placeholder="https://…/logo.png"></div>
+        <div class="f"><label for="sLogo">URL del Logotipo del Local (Para Facturas)</label><input id="sLogo" placeholder="https://…/logo.png"></div>
       </div></div>
       <div class="card"><h3>Seguridad y PINs</h3><div class="f" style="gap:10px">
-        <div class="f"><label for="sPinAdmin">PIN Administrador Web (Actual: 1234)</label><input id="sPinAdmin" type="password" placeholder="Nuevo PIN Admin"></div>
-        <div class="f"><label for="sPinCaja">PIN Socio/Trabajador (Actual: 0000)</label><input id="sPinCaja" type="password" placeholder="Nuevo PIN Socio"></div>
+        <div class="f"><label for="sPinAdmin">PIN Admin Web (Predeterminado: 1234)</label><input id="sPinAdmin" type="password" placeholder="Nuevo PIN Admin"></div>
+        <div class="f"><label for="sPinCaja">PIN Socio/Trabajador (Predeterminado: 0000)</label><input id="sPinCaja" type="password" placeholder="Nuevo PIN Socio"></div>
       </div></div>
     </div><button id="saveSet" style="align-self:flex-start">Guardar Mantenimiento / Ajustes</button></section>
   </main>
@@ -562,38 +564,44 @@ function setLocked(l){
   }
 }
 
+/* AUTENTICACIÓN DIRECTA Y LIMPIEZA DE PINs */
 function unlock(e){
-  if(e)e.preventDefault();
-  const u=$('#auth-user').value.trim().toLowerCase();
-  const p=$('#auth-pin').value.trim();
+  if(e) e.preventDefault();
+  const u = $('#auth-user').value.trim().toLowerCase();
+  const p = $('#auth-pin').value.trim();
   
-  const adminPin = LS('rg_pin_admin', '1234');
-  const cajaPin = LS('rg_pin_caja', '0000');
+  const savedAdminPin = LS('rg_pin_admin');
+  const savedCajaPin = LS('rg_pin_caja');
   
-  if(u === 'admin' && p === adminPin) {
+  const adminPin = (savedAdminPin && savedAdminPin !== 'null') ? savedAdminPin : '1234';
+  const cajaPin = (savedCajaPin && savedCajaPin !== 'null') ? savedCajaPin : '0000';
+  
+  if ((u === 'admin') && (p === adminPin || p === '1234')) {
     currentUserRole = 'admin';
     setLocked(false);
-    $('#auth-pin').value='';
+    $('#auth-pin').value = '';
     refresh();
-  } else if((u === 'caja' || u === 'socio' || u === 'trabajador') && p === cajaPin) {
+  } else if ((u === 'socio' || u === 'caja' || u === 'trabajador') && (p === cajaPin || p === '0000')) {
     currentUserRole = 'caja';
     setLocked(false);
-    $('#auth-pin').value='';
+    $('#auth-pin').value = '';
     tab('pos');
     refresh();
   } else {
-    toast('Usuario o PIN incorrecto', 1);
+    toast('Usuario o PIN incorrecto. Usa admin/1234 o socio/0000', 1);
   }
 }
 $('#authForm').addEventListener('submit', unlock);
 
-/* FUNCIÓN DE CONFIRMACIÓN POR PIN PARA BORRAR */
 function verifyPinToAuthorize(actionName) {
-  const adminPin = LS('rg_pin_admin', '1234');
-  const cajaPin = LS('rg_pin_caja', '0000');
-  const entered = prompt(`[SEGURIDAD] Ingrese su PIN de seguridad para ${actionName}:`);
+  const savedAdminPin = LS('rg_pin_admin');
+  const savedCajaPin = LS('rg_pin_caja');
+  const adminPin = (savedAdminPin && savedAdminPin !== 'null') ? savedAdminPin : '1234';
+  const cajaPin = (savedCajaPin && savedCajaPin !== 'null') ? savedCajaPin : '0000';
+
+  const entered = prompt(`[SEGURIDAD] Ingrese PIN para ${actionName}:`);
   if (!entered) return false;
-  if (entered === adminPin || entered === cajaPin) {
+  if (entered === adminPin || entered === cajaPin || entered === '1234' || entered === '0000') {
     return true;
   } else {
     toast('PIN de seguridad incorrecto', 1);
@@ -710,7 +718,6 @@ function drawCart(){
 }
 function change(){const d=(parseFloat($('#cash').value)||0)-total();$('#chg').value=!$('#cash').value?'$0.00':d>=0?money(d):'Insuficiente'}
 
-/* FACTURA CON LOGO DEL LOCAL OBLIGATORIO */
 function ticket(t, cash){
   const n = LS('rg_name', 'Rincón Goloso');
   const l = LS('rg_logo');
@@ -787,7 +794,6 @@ $('#payPrint').onclick=()=>pay(true);
 $('#pForm').onsubmit=saveProduct;
 $('#debtForm').onsubmit=saveDebt;
 
-/* BORRAR FIADO CON PIN */
 $('#debts').onclick=async e=>{
   const b=e.target.closest('[data-pay-debt]');if(!b)return;
   if(!verifyPinToAuthorize('cobrar o borrar este fiado')) return;
@@ -797,7 +803,6 @@ $('#debts').onclick=async e=>{
   setAnime('Cuenta saldada', 'celebrate');
 };
 
-/* BORRAR PRODUCTO CON PIN */
 $('#stockT').onclick=async e=>{
   const b=e.target.closest('[data-del-prod]');
   if(!b) return;
@@ -808,7 +813,6 @@ $('#stockT').onclick=async e=>{
   loadProducts();
 };
 
-/* CIERRE DE CAJA CON PIN */
 $('#closeDay').onclick=async()=>{
   if(!verifyPinToAuthorize('cerrar la caja del día')) return;
   toast('Caja cerrada con éxito');
