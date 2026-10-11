@@ -446,14 +446,13 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
     </section>
 
     <section id="v-set" class="view"><div class="row" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
-     <div class="card"><h3>Personalización del Local</h3><div class="f" style="gap:10px">
-        <div class="f"><label for="sName">Nombre del Local</label><input id="sName"></div>
-        <div class="f"><label for="sLogoFile">Subir Logotipo del Local (Imagen)</label><input id="sLogoFile" type="file" accept="image/*"></div>
-        <div class="f"><label for="sLogo">O URL del Logotipo</label><input id="sLogo" placeholder="https://…/logo.png"></div>
+      <div class="card"><h3>Supabase (Conexión)</h3><div class="f" style="gap:10px">
+        <div class="f"><label for="sUrl">URL de Supabase</label><input id="sUrl" readonly></div>
       </div></div>
       <div class="card"><h3>Personalización del Local</h3><div class="f" style="gap:10px">
         <div class="f"><label for="sName">Nombre del Local</label><input id="sName"></div>
-        <div class="f"><label for="sLogo">URL del Logotipo del Local (Para Facturas)</label><input id="sLogo" placeholder="https://…/logo.png"></div>
+        <div class="f"><label for="sLogoFile">Subir Logotipo del Local</label><input id="sLogoFile" type="file" accept="image/*"></div>
+        <div class="f"><label for="sLogo">O URL del Logotipo</label><input id="sLogo" placeholder="https://…/logo.png"></div>
       </div></div>
       <div class="card"><h3>Usuarios y PINs (Sincronizados)</h3><div class="f" style="gap:10px">
         <div class="f"><label for="sUserAdmin">Usuario Admin Master</label><input id="sUserAdmin"></div>
@@ -532,7 +531,7 @@ function toast(m,err){
 
 function setLogo(el){
   el.textContent='';
-  if(globalSettings.store_logo){
+  if(globalSettings.store_logo && globalSettings.store_logo !== 'EMPTY'){
     const i=new Image();i.src=globalSettings.store_logo;i.alt='';el.append(i);
   } else {
     el.textContent='RG';
@@ -545,7 +544,7 @@ function brand(){
   ['#hName','#lName'].forEach(s=>$(s).textContent=n);
   ['#nLogo','#lLogo'].forEach(s=>setLogo($(s)));
   $('#sName').value = globalSettings.store_name;
-  $('#sLogo').value = globalSettings.store_logo;
+  $('#sLogo').value = (globalSettings.store_logo === 'EMPTY' ? '' : globalSettings.store_logo);
   
   $('#lblAdmin').textContent = globalSettings.user_admin;
   $('#lblCaja').textContent = globalSettings.user_caja;
@@ -601,8 +600,19 @@ async function loadSettingsFromCloud(){
 
 async function saveSettings(){
   if(currentUserRole !== 'admin') return toast('Solo el Admin Master puede guardar ajustes', 1);
+  
+  let newLogo = $('#sLogo').value.trim();
+  const logoFile = $('#sLogoFile').files[0];
+
+  if(logoFile) {
+    const b = await shrink(logoFile);
+    const n = 'logo_' + Date.now() + (b.type === 'image/webp' ? '.webp' : '.png');
+    const { error: uploadErr } = await sb.storage.from('products').upload(n, b, { contentType: b.type });
+    if(uploadErr) return toast('Error al subir el logotipo: ' + uploadErr.message, 1);
+    newLogo = sb.storage.from('products').getPublicUrl(n).data.publicUrl;
+  }
+
   const newName = $('#sName').value.trim() || 'Rincón Goloso';
-  const newLogo = $('#sLogo').value.trim();
   const newUserAdmin = $('#sUserAdmin').value.trim() || globalSettings.user_admin;
   const newPinAdmin = $('#sPinAdmin').value.trim() || globalSettings.pin_admin;
   const newUserCaja = $('#sUserCaja').value.trim() || globalSettings.user_caja;
@@ -627,7 +637,7 @@ async function saveSettings(){
   globalSettings.user_caja = newUserCaja;
   globalSettings.pin_caja = newPinCaja;
 
-  toast('Usuarios y PINs sincronizados con éxito');
+  toast('¡Ajustes y logotipo sincronizados con éxito!');
   brand();
 }
 
@@ -741,21 +751,9 @@ async function saveProduct(e){
     if(error)return toast('Error al subir foto: '+error.message,1);
     image_url=sb.storage.from('products').getPublicUrl(n).data.publicUrl;
   }
-  const{error}=await sb.from('products').insert({
-    name: $('#pn').value.trim(),
-    category: $('#pc').value,
-    subtype: $('#ps').value.trim() || null,
-    brand: $('#pb').value.trim() || null,
-    barcode: $('#pk').value.trim() || null,
-    purchase_price: +$('#pp').value,
-    sale_price: +$('#pv').value,
-    stock: +$('#pst').value,
-    image_url
-  });
-  if(error) return toast(error.message, 1);
-  e.target.reset();
-  toast('Producto guardado');
-  loadProducts();
+  const{error}=await sb.from('products').insert({name:$('#pn').value.trim(),category:$('#pc').value,subtype:$('#ps').value.trim()\vert{}\vert{}null,brand:$('#pb').value.trim()||null,barcode:$('#pk').value.trim()\vert{}\vert{}null,purchase_price:+$('#pp').value,sale_price:+$('#pv').value,stock:+$('#pst').value,image_url});
+  if(error)return toast(error.message,1);
+  e.target.reset();toast('Producto guardado');loadProducts();
   setAnime('Producto guardado con éxito', 'celebrate');
 }
 
@@ -782,7 +780,7 @@ function ticket(t, cash){
   const n = globalSettings.store_name || 'Rincón Goloso';
   const l = globalSettings.store_logo;
   let html = '<div class="header">';
-  if (l) html += '<img class="logo-img" src="' + esc(l) + '" alt="Logo"><br>';
+  if (l && l !== 'EMPTY') html += '<img class="logo-img" src="' + esc(l) + '" alt="Logo"><br>';
   html += '<b style="font-size:14px">' + esc(n).toUpperCase() + '</b><br>Factura de Venta / Comprobante</div><hr style="border:0;border-top:1px dashed #000;margin:8px 0">';
   html += 'Fecha: ' + new Date().toLocaleString() + '<br>Cliente: ' + esc($('#cust').value || 'Consumidor final') + '<hr style="border:0;border-top:1px dashed #000;margin:8px 0">';
   for (let i = 0; i < cart.length; i++) {
