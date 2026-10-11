@@ -333,10 +333,10 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
 <div id="lock" role="dialog" aria-modal="true" aria-label="Acceso"><form class="card" id="authForm">
   <div class="logo" id="lLogo" style="margin:0 auto">RG</div>
   <h2 id="lName">Rincón Goloso</h2>
-  <p style="font-size:12px;color:var(--tx2)">Acceso protegido de administración</p>
-  <input id="auth-user" type="text" name="username" placeholder="Usuario" autocomplete="username" autocapitalize="none" spellcheck="false">
-  <input id="auth-pin" type="password" name="password" placeholder="PIN o contraseña" autocomplete="current-password">
-  <button type="submit" id="unlock">Desbloquear Panel</button>
+  <p style="font-size:12px;color:var(--tx2)">Acceso de administración centralizado</p>
+  <input id="auth-user" type="text" name="username" placeholder="Usuario" autocomplete="username" value="admin">
+  <input id="auth-pin" type="password" name="password" placeholder="PIN de acceso" autocomplete="current-password">
+  <button type="submit" id="unlock">Entrar al Sistema</button>
   <small id="hint" style="color:var(--tx2)"></small>
 </form></div>
 
@@ -352,7 +352,7 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
 
   <main>
     <header>
-      <div style="display:flex;align-items:center"><h1 id="hName">Rincón Goloso</h1><span class="pill" id="st">Sin conexión</span></div>
+      <div style="display:flex;align-items:center"><h1 id="hName">Rincón Goloso</h1><span class="pill" id="st">Conectando...</span></div>
       <div style="display:flex;gap:8px;align-items:center">
         <div class="themes">
           <button data-t="t1" class="on">Vibrant</button><button data-t="t2">Nebula</button><button data-t="t3">Midnight</button>
@@ -438,19 +438,17 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
     </section>
 
     <section id="v-set" class="view"><div class="row" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
-      <div class="card"><h3>Supabase</h3><div class="f" style="gap:10px">
-        <div class="f"><label for="sUrl">URL</label><input id="sUrl" placeholder="https://xxxx.supabase.co"></div>
-        <div class="f"><label for="sKey">Anon key</label><input id="sKey" type="password"></div>
-        <div class="f"><label for="sMail">Email del usuario</label><input id="sMail" type="email" autocomplete="off"></div>
-        <div class="f"><label for="sPass">Contraseña</label><input id="sPass" type="password" autocomplete="new-password"></div>
+      <div class="card"><h3>Supabase (Conectado por Defecto)</h3><div class="f" style="gap:10px">
+        <div class="f"><label for="sUrl">URL de Supabase</label><input id="sUrl" readonly></div>
+        <div class="f"><label for="sMail">Email de Administración</label><input id="sMail" readonly></div>
       </div></div>
       <div class="card"><h3>Tienda</h3><div class="f" style="gap:10px">
-        <div class="f"><label for="sName">Nombre</label><input id="sName"></div>
+        <div class="f"><label for="sName">Nombre Comercial</label><input id="sName"></div>
         <div class="f"><label for="sLogo">URL del logotipo</label><input id="sLogo" placeholder="https://…/logo.png"></div>
       </div></div>
-      <div class="card"><h3>Seguridad</h3><div class="f" style="gap:10px">
-        <div class="f"><label for="sUser">Usuario</label><input id="sUser"></div>
-        <div class="f"><label for="sPin">Nuevo PIN</label><input id="sPin" type="password" placeholder="Vacío para no cambiar"></div>
+      <div class="card"><h3>Seguridad Global</h3><div class="f" style="gap:10px">
+        <div class="f"><label for="sUser">Usuario</label><input id="sUser" readonly value="admin"></div>
+        <div class="f"><label for="sPin">Nuevo PIN de Acceso</label><input id="sPin" type="password" placeholder="Vacío para no cambiar"></div>
       </div></div>
     </div><button id="saveSet" style="align-self:flex-start">Guardar Ajustes</button></section>
   </main>
@@ -469,6 +467,13 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
 <div id="ticket"></div>
 
 <script>
+/* CONFIGURACIÓN CENTRALIZADA PERMANENTE DE SUPABASE */
+const CONFIG = {
+  url: "https://qmynjqbaakpsoetetyfe.supabase.co",
+  key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFteW5qcWJhYWtwc29ldGV0eWZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjk0MzY2NzEsImV4cCI6MjA0NTAxMjY3MX0.3lM5fA1xT52T65gKxXG2kM8fOqN3mRk_JmU1a0Z3230",
+  mail: "admin@rincongoloso.com"
+};
+
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 const mem={},store={get:k=>{try{return localStorage.getItem(k)}catch(e){return mem[k]??null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){mem[k]=String(v)}}};
 const LS=(k,d='')=>store.get(k)||d;
@@ -476,7 +481,6 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const money=n=>'$'+Number(n||0).toFixed(2);
 const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Guayaquil'}).format(new Date());
 const CATS=['Lácteos','Snacks/Frituras','Confitería/Dulces','Galletas','Bebidas','Helados/Congelados'];
-const SUBS=['Yogur','Papas fritas','Dulces ácidos','Paletas ácidas','Galletas de amor','Galletas de sal'];
 let sb=null,products=[],cart=[],debts=[];
 
 const animeCharacters = [
@@ -511,7 +515,7 @@ $('#animeAssistant').addEventListener('click', cycleAnimeCharacter);
 function toast(m,err){
   const t=$('#toast');t.textContent=m;t.className=err?'err':'';t.hidden=false;
   clearTimeout(t.x);t.x=setTimeout(()=>t.hidden=true,3200);
-  if (err) setAnime('Atencion: ' + m, 'alert');
+  if (err) setAnime('Atención: ' + m, 'alert');
 }
 
 function setLogo(el){el.textContent='';const u=LS('rg_logo');if(u){const i=new Image();i.src=u;i.alt='';el.append(i)}else el.textContent='RG'}
@@ -531,7 +535,7 @@ function setLocked(l){
   document.body.style.overflow=l?'hidden':'';
   document.documentElement.style.overflow=l?'hidden':'';
   if(l) {
-    setTimeout(()=>$('#auth-user').focus(),0);
+    setTimeout(()=>$('#auth-pin').focus(),0);
     setLocked.active = true;
   } else {
     setLocked.active = false;
@@ -539,60 +543,62 @@ function setLocked(l){
   }
 }
 
-window.addEventListener('keydown', e => {
-  if (setLocked.active && [' ', 'Space', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'].includes(e.key)) {
-    e.preventDefault();
-  }
-});
-
 function unlock(e){
   if(e)e.preventDefault();
   const u=$('#auth-user').value.trim();
   const p=$('#auth-pin').value;
-  const correctUser=LS('rg_user','admin');
   const correctPin=LS('rg_pin','1234');
 
-  if(u===correctUser && p===correctPin){
+  if(u==='admin' && p===correctPin){
     setLocked(false);
     $('#auth-pin').value='';
   } else {
-    toast('Usuario o PIN incorrecto',1);
+    toast('PIN incorrecto',1);
     $('#auth-pin').select();
   }
 }
 $('#authForm').addEventListener('submit',unlock);
 setLocked(true);
 
+/* INICIALIZACIÓN AUTOMÁTICA Y CENTRALIZADA DE SUPABASE */
 async function connect(){
-  const u=LS('rg_url'),k=LS('rg_key');
-  if(!u||!k||!window.supabase)return status(false,'Configura Supabase en Ajustes');
-  sb=supabase.createClient(u,k);
-  const{data}=await sb.auth.getSession();
-  if(!data.session)return status(false,'Inicia sesión en Ajustes');
-  status(true,'Conectado');refresh();
+  if(!window.supabase) return status(false, 'Cargando librería...');
+  sb = supabase.createClient(CONFIG.url, CONFIG.key);
+  status(true, 'Conectado a la red');
+  refresh();
+  setupRealtime();
 }
+
+/* ESCUCHA EN TIEMPO REAL PARA TODOS LOS DISPOSITIVOS */
+function setupRealtime(){
+  if(!sb) return;
+  sb.channel('db-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => loadProducts())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'debts' }, () => loadDebts())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'sales' }, () => loadReport())
+    .subscribe();
+}
+
 function refresh(){loadProducts();loadDebts();loadReport()}
+
 async function saveSettings(){
-  store.set('rg_url',$('#sUrl').value.trim());store.set('rg_key',$('#sKey').value.trim());
-  store.set('rg_mail',$('#sMail').value.trim());store.set('rg_name',$('#sName').value.trim()||'Rincón Goloso');
+  store.set('rg_name',$('#sName').value.trim()||'Rincón Goloso');
   store.set('rg_logo',$('#sLogo').value.trim());
-  if($('#sUser').value.trim())store.set('rg_user',$('#sUser').value.trim());
-  if($('#sPin').value){store.set('rg_pin',$('#sPin').value);$('#sPin').value=''}
-  brand();
-  const u=LS('rg_url'),k=LS('rg_key');
-  if(u&&k&&window.supabase&&$('#sMail').value&&$('#sPass').value){
-    const c=supabase.createClient(u,k);
-    const{error}=await c.auth.signInWithPassword({email:$('#sMail').value.trim(),password:$('#sPass').value});
-    $('#sPass').value='';
-    if(error)return toast('No se pudo iniciar sesión: '+error.message,1);
+  if($('#sPin').value){
+    store.set('rg_pin',$('#sPin').value);
+    $('#sPin').value='';
+    toast('Nuevo PIN guardado globalmente');
+  } else {
+    toast('Ajustes guardados');
   }
-  toast('Ajustes guardados');connect();
+  brand();
 }
 
 async function loadProducts(){
+  if(!sb) return;
   const{data,error}=await sb.from('products').select('*').eq('active',true).order('name');
   if(error)return toast(error.message,1);
-  products=data;fillFilters();renderGrid();renderStock();
+  products=data||[];fillFilters();renderGrid();renderStock();
 }
 function fillSel(id,vals,all){const s=$(id),v=s.value;s.innerHTML='<option value="">'+all+'</option>'+vals.map(x=>'<option>'+esc(x)+'</option>').join('');s.value=v}
 function fillFilters(){
@@ -609,7 +615,7 @@ function renderGrid(){
     const img=p.image_url?'<img loading="lazy" src="'+esc(p.image_url)+'" alt="">':'<div class="ph">IMG</div>';
     html+='<button class="pcard" data-id="'+p.id+'" '+(p.stock<1?'disabled':'')+'>'+img+'<b>'+esc(p.name)+'</b><small>'+esc(p.subtype||p.category||'')+'</small><span>'+money(p.sale_price)+'</span></button>';
   }
-  $('#grid').innerHTML=list.length?html:'<p style="color:var(--tx2)">Sin productos. Agrégalos en Stock.</p>';
+  $('#grid').innerHTML=list.length?html:'<p style="color:var(--tx2)">Sin productos en inventario.</p>';
 }
 function renderStock(){
   const low=products.filter(p=>p.stock<=5).length,bd=$('#lowBdg');bd.hidden=!low;bd.textContent=low;
@@ -626,18 +632,18 @@ function renderStock(){
 }
 function shrink(f){return new Promise(r=>{const i=new Image();i.onload=()=>{const k=Math.min(1,600/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);c.toBlob(r,'image/webp',.8)};i.src=URL.createObjectURL(f)})}
 async function saveProduct(e){
-  e.preventDefault();if(!sb)return toast('Conecta Supabase primero',1);
+  e.preventDefault();if(!sb)return toast('Conectando...',1);
   let image_url=null;const f=$('#pf').files[0];
   if(f){
     const b=await shrink(f),n=Date.now()+(b.type==='image/webp'?'.webp':'.png');
     const{error}=await sb.storage.from('products').upload(n,b,{contentType:b.type});
-    if(error)return toast('No se pudo subir la foto: '+error.message,1);
+    if(error)return toast('Error al subir foto: '+error.message,1);
     image_url=sb.storage.from('products').getPublicUrl(n).data.publicUrl;
   }
   const{error}=await sb.from('products').insert({name:$('#pn').value.trim(),category:$('#pc').value,subtype:$('#ps').value.trim()||null,brand:$('#pb').value.trim()||null,barcode:$('#pk').value.trim()||null,purchase_price:+$('#pp').value,sale_price:+$('#pv').value,stock:+$('#pst').value,image_url});
   if(error)return toast(error.message,1);
   e.target.reset();toast('Producto guardado');loadProducts();
-  setAnime('Producto agregado al stock', 'celebrate');
+  setAnime('Producto publicado para todos', 'celebrate');
 }
 
 function add(id){
@@ -681,7 +687,7 @@ function ticket(t, cash){
 
 async function pay(printIt){
   if(!cart.length)return toast('El pedido está vacío',1);
-  if(!sb)return toast('Conecta Supabase primero',1);
+  if(!sb)return toast('Conectando a la red...',1);
   const t=total(),cash=parseFloat($('#cash').value)||0;
   if(cash&&cash<t)return toast('El efectivo no cubre el total',1);
   const{error}=await sb.rpc('register_sale',{p_items:cart.map(i=>({product_id:i.id,quantity:i.qty,price:i.price})),p_customer:$('#cust').value});
@@ -694,6 +700,7 @@ async function pay(printIt){
 }
 
 async function loadDebts(){
+  if(!sb) return;
   const{data,error}=await sb.from('debts').select('*').eq('paid',false).order('created_at',{ascending:false});
   if(error)return;
   debts=data||[];
@@ -714,6 +721,7 @@ async function saveDebt(e){
 }
 
 async function loadReport(){
+  if(!sb) return;
   const{data,error}=await sb.rpc('get_daily_report',{p_date:today()});
   if(error||!data)return;
   $('#rS').textContent=money(data.total_sales);
@@ -755,10 +763,13 @@ $('#saveSet').onclick=saveSettings;
 
 brand();
 const t=store.get('rg_theme')||'t1';theme(t);
-$('#sUrl').value=LS('rg_url');$('#sKey').value=LS('rg_key');$('#sMail').value=LS('rg_mail');
-$('#sName').value=LS('rg_name','Rincón Goloso');$('#sLogo').value=LS('rg_logo');
-$('#sUser').value=LS('rg_user','admin');
+$('#sUrl').value = CONFIG.url;
+$('#sMail').value = CONFIG.mail;
+$('#sName').value = LS('rg_name','Rincón Goloso');
+$('#sLogo').value = LS('rg_logo');
 $('#animeAvatar').innerHTML = animeCharacters[0].svg;
+
+/* CONECTAR DE INMEDIATO */
 connect();
 </script>
 </body>
