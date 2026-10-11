@@ -739,9 +739,21 @@ async function saveProduct(e){
     if(error)return toast('Error al subir foto: '+error.message,1);
     image_url=sb.storage.from('products').getPublicUrl(n).data.publicUrl;
   }
-  const{error}=await sb.from('products').insert({name:$('#pn').value.trim(),category:$('#pc').value,subtype:$('#ps').value.trim()\vert{}\vert{}null,brand:$('#pb').value.trim()||null,barcode:$('#pk').value.trim()\vert{}\vert{}null,purchase_price:+$('#pp').value,sale_price:+$('#pv').value,stock:+$('#pst').value,image_url});
-  if(error)return toast(error.message,1);
-  e.target.reset();toast('Producto guardado');loadProducts();
+  const{error}=await sb.from('products').insert({
+    name: $('#pn').value.trim(),
+    category: $('#pc').value,
+    subtype: $('#ps').value.trim() || null,
+    brand: $('#pb').value.trim() || null,
+    barcode: $('#pk').value.trim() || null,
+    purchase_price: +$('#pp').value,
+    sale_price: +$('#pv').value,
+    stock: +$('#pst').value,
+    image_url
+  });
+  if(error) return toast(error.message, 1);
+  e.target.reset();
+  toast('Producto guardado');
+  loadProducts();
   setAnime('Producto guardado con éxito', 'celebrate');
 }
 
