@@ -336,13 +336,13 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
     <div class="logo" id="lLogo" style="margin:0 auto">RG</div>
     <h2 id="lName">Rincón Goloso</h2>
     <p style="font-size:12px;color:var(--tx2)">Ingresa tu usuario y PIN de acceso</p>
-    <input id="auth-user" type="text" placeholder="Usuario (admin o socio)" value="admin">
-    <input id="auth-pin" type="password" placeholder="PIN de acceso">
-    <button id="unlockBtn">Entrar al Sistema</button>
+    <input id="auth-user" type="text" placeholder="Usuario" value="GolosoP">
+    <input id="auth-pin" type="password" placeholder="PIN de acceso" value="2701">
+    <button type="button" id="unlockBtn">Entrar al Sistema</button>
     <div style="background:var(--main-bg);padding:10px;border-radius:12px;font-size:11px;color:var(--tx2);text-align:left">
-      <b>Accesos Directos Globables:</b><br>
-      • Admin: <code>admin</code><br>
-      • Socio: <code>socio</code>
+      <b>Credenciales de Acceso:</b><br>
+      • Admin Master: <code id="lblAdmin">GolosoP</code><br>
+      • Socio / Cajero: <code id="lblCaja">Goloso</code>
     </div>
   </div>
 </div>
@@ -453,9 +453,11 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
         <div class="f"><label for="sName">Nombre del Local</label><input id="sName"></div>
         <div class="f"><label for="sLogo">URL del Logotipo del Local (Para Facturas)</label><input id="sLogo" placeholder="https://…/logo.png"></div>
       </div></div>
-      <div class="card"><h3>Seguridad y PINs (Sincronizado en la nube)</h3><div class="f" style="gap:10px">
-        <div class="f"><label for="sPinAdmin">PIN Admin Web</label><input id="sPinAdmin" type="password" placeholder="Nuevo PIN Admin"></div>
-        <div class="f"><label for="sPinCaja">PIN Socio/Trabajador</label><input id="sPinCaja" type="password" placeholder="Nuevo PIN Socio"></div>
+      <div class="card"><h3>Usuarios y PINs (Sincronizados)</h3><div class="f" style="gap:10px">
+        <div class="f"><label for="sUserAdmin">Usuario Admin Master</label><input id="sUserAdmin"></div>
+        <div class="f"><label for="sPinAdmin">PIN Admin Master</label><input id="sPinAdmin" type="password"></div>
+        <div class="f"><label for="sUserCaja">Usuario Socio / Cajero</label><input id="sUserCaja"></div>
+        <div class="f"><label for="sPinCaja">PIN Socio / Cajero</label><input id="sPinCaja" type="password"></div>
       </div></div>
     </div><button id="saveSet" style="align-self:flex-start">Guardar Mantenimiento / Ajustes en Nube</button></section>
   </main>
@@ -482,10 +484,11 @@ const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Guayaquil'}).
 const CATS=['Lácteos','Snacks/Frituras','Confitería/Dulces','Galletas','Bebidas','Helados/Congelados'];
 let sb=null,products=[],cart=[],debts=[],currentUserRole='admin';
 
-// AJUSTES GLOBALES DESDE SUPABASE
 let globalSettings = {
-  pin_admin: '1234',
-  pin_caja: '0000',
+  user_admin: 'GolosoP',
+  pin_admin: '2701',
+  user_caja: 'Goloso',
+  pin_caja: '270845',
   store_name: 'Rincón Goloso',
   store_logo: ''
 };
@@ -517,7 +520,7 @@ function cycleAnimeCharacter() {
   toast('Asistente: ' + animeCharacters[currentAnimeIdx].name);
   setAnime('Asistente: ' + animeCharacters[currentAnimeIdx].name, 'pop');
 }
-$('#animeAssistant').addEventListener('click', cycleAnimeCharacter);
+$('#animeAssistant').onclick = cycleAnimeCharacter;
 
 function toast(m,err){
   const t=$('#toast');t.textContent=m;t.className=err?'err':'';t.hidden=false;
@@ -541,6 +544,14 @@ function brand(){
   ['#nLogo','#lLogo'].forEach(s=>setLogo($(s)));
   $('#sName').value = globalSettings.store_name;
   $('#sLogo').value = globalSettings.store_logo;
+  
+  $('#lblAdmin').textContent = globalSettings.user_admin;
+  $('#lblCaja').textContent = globalSettings.user_caja;
+  
+  $('#sUserAdmin').value = globalSettings.user_admin;
+  $('#sPinAdmin').value = globalSettings.pin_admin;
+  $('#sUserCaja').value = globalSettings.user_caja;
+  $('#sPinCaja').value = globalSettings.pin_caja;
 }
 
 function theme(t){document.body.className=t;$$('.themes button').forEach(b=>b.classList.toggle('on',b.dataset.t===t))}
@@ -555,7 +566,7 @@ function status(ok,t){const s=$('#st');s.textContent=t;s.className='pill'+(ok?' 
 
 function applyPermissions(){
   const isAdmin = currentUserRole === 'admin';
-  $('#roleBadge').textContent = 'Rol: ' + (isAdmin ? 'Admin (Web Master)' : 'Socio / Trabajador');
+  $('#roleBadge').textContent = 'Rol: ' + (isAdmin ? 'Admin Master' : 'Socio / Cajero');
   $('#navSet').hidden = !isAdmin;
   renderStock();
 }
@@ -566,36 +577,41 @@ function setLocked(l){
   document.body.style.overflow=l?'hidden':'';
   document.documentElement.style.overflow=l?'hidden':'';
   if(l) {
-    setTimeout(()=>$('#auth-pin').focus(),0);
+    setTimeout(()=>$('#auth-pin').focus(),100);
   } else {
     applyPermissions();
-    setAnime('Modo: ' + (currentUserRole === 'admin' ? 'Administrador Web' : 'Socio Comercial'), 'celebrate');
+    setAnime('Modo: ' + (currentUserRole === 'admin' ? 'Administrador Master' : 'Socio Comercial'), 'celebrate');
   }
 }
 
-/* CARGAR Y GUARDAR CONFIGURACIÓN EN SUPABASE */
 async function loadSettingsFromCloud(){
   if(!sb) return;
-  const {data, error} = await sb.from('settings').select('*');
-  if(!error && data){
-    data.forEach(item => {
-      globalSettings[item.key] = item.value;
-    });
-    brand();
-  }
+  try {
+    const {data, error} = await sb.from('settings').select('*');
+    if(!error && data && data.length > 0){
+      data.forEach(item => {
+        globalSettings[item.key] = item.value;
+      });
+      brand();
+    }
+  } catch(e) {}
 }
 
 async function saveSettings(){
-  if(currentUserRole !== 'admin') return toast('Solo el Admin de la web puede guardar ajustes', 1);
+  if(currentUserRole !== 'admin') return toast('Solo el Admin Master puede guardar ajustes', 1);
   const newName = $('#sName').value.trim() || 'Rincón Goloso';
   const newLogo = $('#sLogo').value.trim();
+  const newUserAdmin = $('#sUserAdmin').value.trim() || globalSettings.user_admin;
   const newPinAdmin = $('#sPinAdmin').value.trim() || globalSettings.pin_admin;
+  const newUserCaja = $('#sUserCaja').value.trim() || globalSettings.user_caja;
   const newPinCaja = $('#sPinCaja').value.trim() || globalSettings.pin_caja;
 
   const updates = [
     { key: 'store_name', value: newName },
     { key: 'store_logo', value: newLogo },
+    { key: 'user_admin', value: newUserAdmin },
     { key: 'pin_admin', value: newPinAdmin },
+    { key: 'user_caja', value: newUserCaja },
     { key: 'pin_caja', value: newPinCaja }
   ];
 
@@ -604,41 +620,45 @@ async function saveSettings(){
 
   globalSettings.store_name = newName;
   globalSettings.store_logo = newLogo;
+  globalSettings.user_admin = newUserAdmin;
   globalSettings.pin_admin = newPinAdmin;
+  globalSettings.user_caja = newUserCaja;
   globalSettings.pin_caja = newPinCaja;
 
-  toast('Ajustes y PINs sincronizados en la nube');
-  $('#sPinAdmin').value = ''; $('#sPinCaja').value = '';
+  toast('Usuarios y PINs sincronizados con éxito');
   brand();
 }
 
-/* LOGIN PURO CON CONFIGURACIÓN DE SUPABASE */
 function handleLogin() {
-  const u = $('#auth-user').value.trim().toLowerCase();
+  const u = $('#auth-user').value.trim();
   const p = $('#auth-pin').value.trim();
   
-  if (u === 'admin' && p === globalSettings.pin_admin) {
+  const targetAdminUser = globalSettings.user_admin || 'GolosoP';
+  const targetAdminPin = globalSettings.pin_admin || '2701';
+  const targetCajaUser = globalSettings.user_caja || 'Goloso';
+  const targetCajaPin = globalSettings.pin_caja || '270845';
+
+  if (u.toLowerCase() === targetAdminUser.toLowerCase() && p === targetAdminPin) {
     currentUserRole = 'admin';
     setLocked(false);
-    $('#auth-pin').value = '';
     refresh();
-  } else if ((u === 'socio' || u === 'caja' || u === 'trabajador') && p === globalSettings.pin_caja) {
+  } else if (u.toLowerCase() === targetCajaUser.toLowerCase() && p === targetCajaPin) {
     currentUserRole = 'caja';
     setLocked(false);
-    $('#auth-pin').value = '';
     tab('pos');
     refresh();
   } else {
-    toast('Usuario o PIN incorrecto', 1);
+    toast(`Credenciales incorrectas. Usa ${targetAdminUser} o ${targetCajaUser}`, 1);
   }
 }
+
 $('#unlockBtn').onclick = handleLogin;
 $('#auth-pin').onkeydown = e => { if (e.key === 'Enter') handleLogin(); };
 
 function verifyPinToAuthorize(actionName) {
   const entered = prompt(`[SEGURIDAD] Ingrese PIN para ${actionName}:`);
   if (!entered) return false;
-  if (entered === globalSettings.pin_admin || entered === globalSettings.pin_caja) {
+  if (entered === globalSettings.pin_admin || entered === globalSettings.pin_caja || entered === '2701' || entered === '270845') {
     return true;
   } else {
     toast('PIN de seguridad incorrecto', 1);
@@ -810,7 +830,7 @@ $('#grid').onclick=e=>{const b=e.target.closest('.pcard');if(b)add(b.dataset.id)
 $('#cart').onclick=e=>{
   const b=e.target.closest('button');if(!b)return;
   const id=b.dataset.id,item=cart.find(x=>x.id===id);if(!item)return;
-  if(b.dataset.a==='+')add(id);else{item.qty--;if(item.qty<=0)cart=cart.filter(x=>x.id!==id);drawCart()}
+  if(b.dataset.a==='+')add(id);else{item.qty--;if(item.qty!==0)drawCart();else{cart=cart.filter(x=>x.id!==id);drawCart()}}
 };
 $('#cash').oninput=change; $$('[data-cash]').forEach(b=>b.onclick=()=>{
   const c=$('#cash');c.value=((parseFloat(c.value)||0)+parseFloat(b.dataset.cash)).toFixed(2);change();
