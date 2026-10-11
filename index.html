@@ -333,11 +333,11 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
 <div id="lock" role="dialog" aria-modal="true" aria-label="Acceso"><form class="card" id="authForm">
   <div class="logo" id="lLogo" style="margin:0 auto">RG</div>
   <h2 id="lName">Rincón Goloso</h2>
-  <p style="font-size:12px;color:var(--tx2)">Ingresa con tu cuenta de Supabase</p>
-  <input id="auth-user" type="email" name="email" placeholder="admin@rincongoloso.com" autocomplete="email" value="admin@rincongoloso.com" required>
-  <input id="auth-pin" type="password" name="password" placeholder="Contraseña de Supabase" autocomplete="current-password" required>
+  <p style="font-size:12px;color:var(--tx2)">Ingresa tu usuario y PIN</p>
+  <input id="auth-user" type="text" placeholder="Usuario (admin o caja)" autocomplete="username" value="admin" required>
+  <input id="auth-pin" type="password" placeholder="PIN de acceso" autocomplete="current-password" required>
   <button type="submit" id="unlock">Entrar al Sistema</button>
-  <small style="color:var(--tx2)">Usa tu correo y clave de Supabase</small>
+  <small style="color:var(--tx2)">Admin PIN: 1234 | Caja PIN: 0000</small>
 </form></div>
 
 <div class="app-viewport">
@@ -347,12 +347,12 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
     <button data-v="debts"><small>Fiados</small></button>
     <button data-v="stock"><small>Stock</small><i class="bdg" id="lowBdg" hidden></i></button>
     <button data-v="rep"><small>Caja</small></button>
-    <button data-v="set"><small>Ajustes</small></button>
+    <button data-v="set" id="navSet"><small>Ajustes</small></button>
   </nav>
 
   <main>
     <header>
-      <div style="display:flex;align-items:center"><h1 id="hName">Rincón Goloso</h1><span class="pill" id="st">Conectando...</span></div>
+      <div style="display:flex;align-items:center"><h1 id="hName">Rincón Goloso</h1><span class="pill" id="st">Conectando...</span><span class="pill" id="roleBadge">Rol: Admin</span></div>
       <div style="display:flex;gap:8px;align-items:center">
         <div class="themes">
           <button data-t="t1" class="on">Vibrant</button><button data-t="t2">Nebula</button><button data-t="t3">Midnight</button>
@@ -407,7 +407,7 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
           <div class="f"><label for="ps">Subtipo</label><input id="ps" list="subs" placeholder="yogur, papas…"><datalist id="subs"></datalist></div>
           <div class="f"><label for="pb">Marca</label><input id="pb"></div>
           <div class="f"><label for="pk">Código de barras</label><input id="pk"></div>
-          <div class="f"><label for="pp">Precio compra ($)</label><input id="pp" type="number" step="0.01" min="0" required></div>
+          <div class="f" id="adminCostField"><label for="pp">Precio compra ($)</label><input id="pp" type="number" step="0.01" min="0" required value="0"></div>
           <div class="f"><label for="pv">Precio venta ($)</label><input id="pv" type="number" step="0.01" min="0" required></div>
           <div class="f"><label for="pst">Stock</label><input id="pst" type="number" min="0" required></div>
           <div class="f"><label for="pf">Foto</label><input id="pf" type="file" accept="image/*"></div>
@@ -419,7 +419,7 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
     <section id="v-rep" class="view">
       <div class="row">
         <div class="card"><h3>Ventas de Hoy</h3><div class="big" id="rS">$0.00</div><small id="rN"></small></div>
-        <div class="card"><h3>Ganancia de Hoy</h3><div class="big" id="rP" style="color:#05c46b">$0.00</div><small id="rW"></small></div>
+        <div class="card" id="cardProfit"><h3>Ganancia Neta (Admin)</h3><div class="big" id="rP" style="color:#05c46b">$0.00</div><small id="rW"></small></div>
         <div class="card">
           <h3>Estadística Visual</h3>
           <div class="chart-bar-container">
@@ -440,11 +440,14 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
     <section id="v-set" class="view"><div class="row" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
       <div class="card"><h3>Supabase (Conectado)</h3><div class="f" style="gap:10px">
         <div class="f"><label for="sUrl">URL de Supabase</label><input id="sUrl" readonly></div>
-        <div class="f"><label for="sMail">Email de Administración</label><input id="sMail" readonly></div>
       </div></div>
       <div class="card"><h3>Tienda</h3><div class="f" style="gap:10px">
         <div class="f"><label for="sName">Nombre Comercial</label><input id="sName"></div>
         <div class="f"><label for="sLogo">URL del logotipo</label><input id="sLogo" placeholder="https://…/logo.png"></div>
+      </div></div>
+      <div class="card"><h3>Seguridad y PINs</h3><div class="f" style="gap:10px">
+        <div class="f"><label for="sPinAdmin">PIN Administrador (Actual: 1234)</label><input id="sPinAdmin" type="password" placeholder="Nuevo PIN Admin"></div>
+        <div class="f"><label for="sPinCaja">PIN Trabajador (Actual: 0000)</label><input id="sPinCaja" type="password" placeholder="Nuevo PIN Trabajador"></div>
       </div></div>
     </div><button id="saveSet" style="align-self:flex-start">Guardar Ajustes</button></section>
   </main>
@@ -465,18 +468,17 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
 <script>
 const CONFIG = {
   url: "https://qmynjqbaakpsoetetyfe.supabase.co",
-  key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFteW5qcWJhYWtwc29ldGV0eWZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjk0MzY2NzEsImV4cCI6MjA0NTAxMjY3MX0.3lM5fA1xT52T65gKxXG2kM8fOqN3mRk_JmU1a0Z3230",
-  mail: "admin@rincongoloso.com"
+  key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFteW5qcWJhYWtwc29ldGV0eWZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjk0MzY2NzEsImV4cCI6MjA0NTAxMjY3MX0.3lM5fA1xT52T65gKxXG2kM8fOqN3mRk_JmU1a0Z3230"
 };
 
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 const mem={},store={get:k=>{try{return localStorage.getItem(k)}catch(e){return mem[k]??null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){mem[k]=String(v)}}};
 const LS=(k,d='')=>store.get(k)||d;
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;T'}[c]||c));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]||c));
 const money=n=>'$'+Number(n||0).toFixed(2);
 const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Guayaquil'}).format(new Date());
 const CATS=['Lácteos','Snacks/Frituras','Confitería/Dulces','Galletas','Bebidas','Helados/Congelados'];
-let sb=null,products=[],cart=[],debts=[];
+let sb=null,products=[],cart=[],debts=[],currentUserRole='admin';
 
 const animeCharacters = [
   { name: "Yuki", svg: '<svg viewBox="0 0 100 100" width="40" height="40"><circle cx="50" cy="55" r="38" fill="#38bdf8" stroke="#0f172a" stroke-width="4"/><circle cx="35" cy="25" r="12" fill="#38bdf8" stroke="#0f172a" stroke-width="4"/><circle cx="65" cy="25" r="12" fill="#38bdf8" stroke="#0f172a" stroke-width="4"/><circle cx="50" cy="58" r="26" fill="#fff" stroke="#0f172a" stroke-width="3"/><circle cx="42" cy="52" r="4" fill="#0f172a"/><circle cx="58" cy="52" r="4" fill="#0f172a"/><path d="M46 62 Q50 66 54 62" stroke="#0f172a" stroke-width="3" stroke-linecap="round"/><circle cx="36" cy="58" r="4" fill="#ff7675" opacity="0.6"/><circle cx="64" cy="58" r="4" fill="#ff7675" opacity="0.6"/></svg>' },
@@ -517,12 +519,21 @@ function setLogo(el){el.textContent='';const u=LS('rg_logo');if(u){const i=new I
 function brand(){const n=LS('rg_name','Rincón Goloso');document.title=n;['#hName','#lName'].forEach(s=>$(s).textContent=n);['#nLogo','#lLogo'].forEach(s=>setLogo($(s)))}
 function theme(t){document.body.className=t;store.set('rg_theme',t);$$('.themes button').forEach(b=>b.classList.toggle('on',b.dataset.t===t))}
 function tab(v){
+  if(currentUserRole==='caja' && v==='set') return toast('Acceso restringido a Administradores', 1);
   $$('nav button[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
   $$('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));
   const msgs = {pos: 'Punto de venta activo', debts: 'Gestión de cuentas por cobrar', stock: 'Control de inventario', rep: 'Reporte diario de caja', set: 'Configuración del sistema'};
   if (msgs[v]) setAnime(msgs[v], 'pop');
 }
 function status(ok,t){const s=$('#st');s.textContent=t;s.className='pill'+(ok?' ok':'')}
+
+function applyPermissions(){
+  const isAdmin = currentUserRole === 'admin';
+  $('#roleBadge').textContent = 'Rol: ' + (isAdmin ? 'Administrador' : 'Caja/Trabajador');
+  $('#navSet').hidden = !isAdmin;
+  $('#adminCostField').hidden = !isAdmin;
+  $('#cardProfit').hidden = !isAdmin;
+}
 
 function setLocked(l){
   $('#lock').hidden=!l;
@@ -532,46 +543,46 @@ function setLocked(l){
   if(l) {
     setTimeout(()=>$('#auth-pin').focus(),0);
   } else {
-    setAnime('Sistema listo', 'celebrate');
+    applyPermissions();
+    setAnime('Bienvenido (' + currentUserRole.toUpperCase() + ')', 'celebrate');
   }
 }
 
-/* AUTENTICACIÓN DIRECTA CON SUPABASE */
-async function unlock(e){
+/* AUTENTICACIÓN POR ROLES */
+function unlock(e){
   if(e)e.preventDefault();
-  const email=$('#auth-user').value.trim();
-  const password=$('#auth-pin').value;
+  const u=$('#auth-user').value.trim().toLowerCase();
+  const p=$('#auth-pin').value.trim();
   
-  status(false, 'Iniciando sesión...');
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  const adminPin = LS('rg_pin_admin', '1234');
+  const cajaPin = LS('rg_pin_caja', '0000');
   
-  if(error) {
-    toast('Error: ' + error.message, 1);
-    status(false, 'Error de acceso');
-  } else {
-    status(true, 'Conectado');
+  if(u === 'admin' && p === adminPin) {
+    currentUserRole = 'admin';
     setLocked(false);
     $('#auth-pin').value='';
     refresh();
+  } else if((u === 'caja' || u === 'trabajador') && p === cajaPin) {
+    currentUserRole = 'caja';
+    setLocked(false);
+    $('#auth-pin').value='';
+    tab('pos');
+    refresh();
+  } else {
+    toast('Usuario o PIN incorrecto', 1);
   }
 }
 $('#authForm').addEventListener('submit', unlock);
 
 async function connect(){
   if(!window.supabase) return status(false, 'Cargando librería...');
-  sb = supabase.createClient(CONFIG.url, CONFIG.key);
-  
-  // Verificar si ya hay una sesión activa en Supabase
-  const { data: { session } } = await sb.auth.getSession();
-  if(session) {
-    status(true, 'Conectado');
-    setLocked(false);
-    refresh();
-  } else {
-    status(true, 'Esperando acceso');
-    setLocked(true);
+  try {
+    sb = supabase.createClient(CONFIG.url, CONFIG.key);
+    status(true, 'Conectado a la Red');
+    setupRealtime();
+  } catch(err) {
+    status(false, 'Error de conexión');
   }
-  setupRealtime();
 }
 
 function setupRealtime(){
@@ -586,9 +597,15 @@ function setupRealtime(){
 function refresh(){loadProducts();loadDebts();loadReport()}
 
 async function saveSettings(){
+  if(currentUserRole !== 'admin') return toast('Solo el admin puede cambiar ajustes', 1);
   store.set('rg_name',$('#sName').value.trim()||'Rincón Goloso');
   store.set('rg_logo',$('#sLogo').value.trim());
-  toast('Ajustes guardados');
+  
+  if($('#sPinAdmin').value.trim()) store.set('rg_pin_admin', $('#sPinAdmin').value.trim());
+  if($('#sPinCaja').value.trim()) store.set('rg_pin_caja', $('#sPinCaja').value.trim());
+  
+  toast('Ajustes y PINs actualizados');
+  $('#sPinAdmin').value = ''; $('#sPinCaja').value = '';
   brand();
 }
 
@@ -638,7 +655,8 @@ async function saveProduct(e){
     if(error)return toast('Error al subir foto: '+error.message,1);
     image_url=sb.storage.from('products').getPublicUrl(n).data.publicUrl;
   }
-  const{error}=await sb.from('products').insert({name:$('#pn').value.trim(),category:$('#pc').value,subtype:$('#ps').value.trim()||null,brand:$('#pb').value.trim()||null,barcode:$('#pk').value.trim()||null,purchase_price:+$('#pp').value,sale_price:+$('#pv').value,stock:+$('#pst').value,image_url});
+  const purchasePrice = currentUserRole === 'admin' ? (+$('#pp').value) : 0;
+  const{error}=await sb.from('products').insert({name:$('#pn').value.trim(),category:$('#pc').value,subtype:$('#ps').value.trim()||null,brand:$('#pb').value.trim()||null,barcode:$('#pk').value.trim()||null,purchase_price:purchasePrice,sale_price:+$('#pv').value,stock:+$('#pst').value,image_url});
   if(error)return toast(error.message,1);
   e.target.reset();toast('Producto guardado');loadProducts();
   setAnime('Producto publicado para todos', 'celebrate');
@@ -729,10 +747,7 @@ async function loadReport(){
 
 $$('nav button[data-v]').forEach(b=>b.onclick=()=>tab(b.dataset.v));
 $$('.themes button').forEach(b=>b.onclick=()=>theme(b.dataset.t));
-$('#relock').onclick=async()=>{
-  if(sb) await sb.auth.signOut();
-  setLocked(true);
-};
+$('#relock').onclick=()=>setLocked(true);
 $('#grid').onclick=e=>{const b=e.target.closest('.pcard');if(b)add(b.dataset.id)};
 $('#cart').onclick=e=>{
   const b=e.target.closest('button');if(!b)return;
@@ -765,11 +780,11 @@ $('#saveSet').onclick=saveSettings;
 brand();
 const t=store.get('rg_theme')||'t1';theme(t);
 $('#sUrl').value = CONFIG.url;
-$('#sMail').value = CONFIG.mail;
 $('#sName').value = LS('rg_name','Rincón Goloso');
 $('#sLogo').value = LS('rg_logo');
 $('#animeAvatar').innerHTML = animeCharacters[0].svg;
 
+setLocked(true);
 connect();
 </script>
 </body>
