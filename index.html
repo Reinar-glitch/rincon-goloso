@@ -308,9 +308,12 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
 #toast { position: fixed; left: 50%; top: 24px; transform: translateX(-50%); z-index: 60; background: #0f172a; color: #fff; padding: 12px 26px; border-radius: 16px; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
 #toast.err { background: #ff3f34; }
 
-#ticket { display: none; font: 12px monospace; color: #000; background: #fff; width: 300px; padding: 12px; }
-#ticket .l { display: flex; justify-content: space-between; }
-@media print { body>*:not(#ticket){display:none!important} #ticket{display:block!important} }
+/* IMPRESIÓN Y FACTURA CON LOGO */
+#ticket { display: none; font: 12px 'Courier New', monospace; color: #000; background: #fff; width: 300px; padding: 16px; border: 1px dashed #ccc; }
+#ticket .header { text-align: center; margin-bottom: 12px; }
+#ticket .logo-img { max-height: 65px; max-width: 140px; object-fit: contain; margin-bottom: 6px; }
+#ticket .l { display: flex; justify-content: space-between; margin: 4px 0; }
+@media print { body>*:not(#ticket){display:none!important} #ticket{display:block!important; width:100%; border:none} }
 
 @media(max-width: 900px) {
   body { padding: 0; }
@@ -333,11 +336,11 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
 <div id="lock" role="dialog" aria-modal="true" aria-label="Acceso"><form class="card" id="authForm">
   <div class="logo" id="lLogo" style="margin:0 auto">RG</div>
   <h2 id="lName">Rincón Goloso</h2>
-  <p style="font-size:12px;color:var(--tx2)">Ingresa tu usuario y PIN</p>
-  <input id="auth-user" type="text" placeholder="Usuario (admin o caja)" autocomplete="username" value="admin" required>
+  <p style="font-size:12px;color:var(--tx2)">Ingresa tu usuario y PIN de acceso</p>
+  <input id="auth-user" type="text" placeholder="admin o socio" autocomplete="username" value="socio" required>
   <input id="auth-pin" type="password" placeholder="PIN de acceso" autocomplete="current-password" required>
   <button type="submit" id="unlock">Entrar al Sistema</button>
-  <small style="color:var(--tx2)">Admin PIN: 1234 | Caja PIN: 0000</small>
+  <small style="color:var(--tx2)">Admin PIN: 1234 | Socio PIN: 0000</small>
 </form></div>
 
 <div class="app-viewport">
@@ -352,7 +355,7 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
 
   <main>
     <header>
-      <div style="display:flex;align-items:center"><h1 id="hName">Rincón Goloso</h1><span class="pill" id="st">Conectando...</span><span class="pill" id="roleBadge">Rol: Admin</span></div>
+      <div style="display:flex;align-items:center"><h1 id="hName">Rincón Goloso</h1><span class="pill" id="st">Conectando...</span><span class="pill" id="roleBadge">Rol: Socio</span></div>
       <div style="display:flex;gap:8px;align-items:center">
         <div class="themes">
           <button data-t="t1" class="on">Vibrant</button><button data-t="t2">Nebula</button><button data-t="t3">Midnight</button>
@@ -373,7 +376,7 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
         <div class="grid" id="grid"></div>
       </div>
       <div class="card">
-        <h3>Pedido Actual</h3>
+        <h3>Pedido Actual / Facturación</h3>
         <div class="tw" style="max-height:200px;overflow:auto"><table id="cart"><thead><tr><th>Producto</th><th>Cant.</th><th>Subtotal</th></tr></thead><tbody></tbody></table></div>
         <div class="tot"><span>Total</span><span id="total">$0.00</span></div>
         <div class="row" style="grid-template-columns:1fr 1fr">
@@ -381,9 +384,9 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
           <div class="f"><label for="chg">Vuelto</label><input id="chg" readonly value="$0.00" style="font-weight:900"></div>
         </div>
         <div style="display:flex;gap:6px;margin:12px 0"><button class="sub" data-cash="5" style="flex:1">+$5</button><button class="sub" data-cash="10" style="flex:1">+$10</button><button class="sub" data-cash="20" style="flex:1">+$20</button></div>
-        <div class="f" style="margin-bottom:12px"><label for="cust">Cliente</label><input id="cust" placeholder="Consumidor final"></div>
-        <button id="payPrint" style="width:100%;margin-bottom:8px">Registrar e Imprimir Ticket</button>
-        <button id="pay" class="sub" style="width:100%">Registrar Venta</button>
+        <div class="f" style="margin-bottom:12px"><label for="cust">Nombre del Cliente / RUC / C.I.</label><input id="cust" placeholder="Consumidor final"></div>
+        <button id="payPrint" style="width:100%;margin-bottom:8px">Emitir Factura e Imprimir Ticket</button>
+        <button id="pay" class="sub" style="width:100%">Registrar Venta Directa</button>
       </div>
     </div></section>
 
@@ -396,32 +399,32 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
           <button>Guardar Fiado</button>
         </form>
       </div>
-      <div class="card"><h3>Cuentas por Cobrar</h3><div class="tw"><table id="debts"><thead><tr><th>Deudor</th><th>Monto</th><th>Detalle</th><th>Fecha</th><th></th></tr></thead><tbody></tbody></table></div></div>
+      <div class="card"><h3>Cuentas por Cobrar</h3><div class="tw"><table id="debts"><thead><tr><th>Deudor</th><th>Monto</th><th>Detalle</th><th>Fecha</th><th>Acción</th></tr></thead><tbody></tbody></table></div></div>
     </div></section>
 
     <section id="v-stock" class="view">
-      <div class="card"><h3>Registrar Producto</h3>
+      <div class="card"><h3>Registrar / Surtir Producto</h3>
         <form id="pForm"><div class="row">
           <div class="f"><label for="pn">Nombre</label><input id="pn" required></div>
           <div class="f"><label for="pc">Categoría</label><select id="pc" required></select></div>
           <div class="f"><label for="ps">Subtipo</label><input id="ps" list="subs" placeholder="yogur, papas…"><datalist id="subs"></datalist></div>
           <div class="f"><label for="pb">Marca</label><input id="pb"></div>
           <div class="f"><label for="pk">Código de barras</label><input id="pk"></div>
-          <div class="f" id="adminCostField"><label for="pp">Precio compra ($)</label><input id="pp" type="number" step="0.01" min="0" required value="0"></div>
-          <div class="f"><label for="pv">Precio venta ($)</label><input id="pv" type="number" step="0.01" min="0" required></div>
-          <div class="f"><label for="pst">Stock</label><input id="pst" type="number" min="0" required></div>
-          <div class="f"><label for="pf">Foto</label><input id="pf" type="file" accept="image/*"></div>
+          <div class="f"><label for="pp">Precio costo (Distribuidora) ($)</label><input id="pp" type="number" step="0.01" min="0" required value="0"></div>
+          <div class="f"><label for="pv">Precio venta al público ($)</label><input id="pv" type="number" step="0.01" min="0" required></div>
+          <div class="f"><label for="pst">Stock disponible</label><input id="pst" type="number" min="0" required></div>
+          <div class="f"><label for="pf">Foto del Producto</label><input id="pf" type="file" accept="image/*"></div>
         </div><button style="margin-top:14px">Guardar Producto</button></form>
       </div>
-      <div class="card"><h3>Inventario General</h3><div class="tw"><table id="stockT"><thead><tr><th></th><th>Nombre</th><th>Categoría</th><th>Subtipo</th><th>Marca</th><th>Venta</th><th>Stock</th></tr></thead><tbody></tbody></table></div></div>
+      <div class="card"><h3>Inventario General</h3><div class="tw"><table id="stockT"><thead><tr><th></th><th>Nombre</th><th>Categoría</th><th>Subtipo</th><th>Marca</th><th>P. Venta</th><th>P. Costo</th><th>% Margen</th><th>Stock</th><th>Acción</th></tr></thead><tbody></tbody></table></div></div>
     </section>
 
     <section id="v-rep" class="view">
       <div class="row">
         <div class="card"><h3>Ventas de Hoy</h3><div class="big" id="rS">$0.00</div><small id="rN"></small></div>
-        <div class="card" id="cardProfit"><h3>Ganancia Neta (Admin)</h3><div class="big" id="rP" style="color:#05c46b">$0.00</div><small id="rW"></small></div>
+        <div class="card"><h3>Ganancia Estimada de Hoy</h3><div class="big" id="rP" style="color:#05c46b">$0.00</div><small id="rW"></small></div>
         <div class="card">
-          <h3>Estadística Visual</h3>
+          <h3>Rendimiento Comercial</h3>
           <div class="chart-bar-container">
             <div class="chart-bar"><div class="chart-fill" id="barToday" style="height: 30%;"></div></div>
             <div class="chart-bar"><div class="chart-fill" id="barWeek" style="height: 60%;"></div></div>
@@ -433,23 +436,24 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
         </div>
       </div>
       <div class="card" style="display:flex;gap:10px;flex-wrap:wrap">
-        <button id="closeDay">Cerrar caja del día anterior</button><button class="sub" id="csv">Exportar ventas (CSV)</button>
+        <button id="closeDay">Cerrar caja del día</button>
+        <button class="sub" id="csv">Exportar reporte CSV</button>
       </div>
     </section>
 
     <section id="v-set" class="view"><div class="row" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
-      <div class="card"><h3>Supabase (Conectado)</h3><div class="f" style="gap:10px">
+      <div class="card"><h3>Supabase (Conexión)</h3><div class="f" style="gap:10px">
         <div class="f"><label for="sUrl">URL de Supabase</label><input id="sUrl" readonly></div>
       </div></div>
-      <div class="card"><h3>Tienda</h3><div class="f" style="gap:10px">
-        <div class="f"><label for="sName">Nombre Comercial</label><input id="sName"></div>
-        <div class="f"><label for="sLogo">URL del logotipo</label><input id="sLogo" placeholder="https://…/logo.png"></div>
+      <div class="card"><h3>Personalización del Local</h3><div class="f" style="gap:10px">
+        <div class="f"><label for="sName">Nombre del Local</label><input id="sName"></div>
+        <div class="f"><label for="sLogo">URL del Logotipo del Local (Aparece en Facturas)</label><input id="sLogo" placeholder="https://…/logo.png"></div>
       </div></div>
       <div class="card"><h3>Seguridad y PINs</h3><div class="f" style="gap:10px">
-        <div class="f"><label for="sPinAdmin">PIN Administrador (Actual: 1234)</label><input id="sPinAdmin" type="password" placeholder="Nuevo PIN Admin"></div>
-        <div class="f"><label for="sPinCaja">PIN Trabajador (Actual: 0000)</label><input id="sPinCaja" type="password" placeholder="Nuevo PIN Trabajador"></div>
+        <div class="f"><label for="sPinAdmin">PIN Administrador Web (Actual: 1234)</label><input id="sPinAdmin" type="password" placeholder="Nuevo PIN Admin"></div>
+        <div class="f"><label for="sPinCaja">PIN Socio/Trabajador (Actual: 0000)</label><input id="sPinCaja" type="password" placeholder="Nuevo PIN Socio"></div>
       </div></div>
-    </div><button id="saveSet" style="align-self:flex-start">Guardar Ajustes</button></section>
+    </div><button id="saveSet" style="align-self:flex-start">Guardar Mantenimiento / Ajustes</button></section>
   </main>
 
   <div class="anime-assistant" id="animeAssistant" title="Haz clic para cambiar de asistente">
@@ -458,10 +462,6 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
   </div>
 </div>
 
-<div id="banner" hidden>
-  <b id="bTxt"></b>
-  <div><button data-snz="6">Posponer 6 h</button><button data-snz="8" class="sub">Posponer 8 h</button><button data-v="debts" class="sub">Ver cuentas</button></div>
-</div>
 <div id="toast" hidden></div>
 <div id="ticket"></div>
 
@@ -515,24 +515,38 @@ function toast(m,err){
   if (err) setAnime('Atención: ' + m, 'alert');
 }
 
-function setLogo(el){el.textContent='';const u=LS('rg_logo');if(u){const i=new Image();i.src=u;i.alt='';el.append(i)}else el.textContent='RG'}
-function brand(){const n=LS('rg_name','Rincón Goloso');document.title=n;['#hName','#lName'].forEach(s=>$(s).textContent=n);['#nLogo','#lLogo'].forEach(s=>setLogo($(s)))}
+function setLogo(el){
+  el.textContent='';
+  const u=LS('rg_logo');
+  if(u){
+    const i=new Image();i.src=u;i.alt='';el.append(i);
+  } else {
+    el.textContent='RG';
+  }
+}
+
+function brand(){
+  const n=LS('rg_name','Rincón Goloso');
+  document.title=n;
+  ['#hName','#lName'].forEach(s=>$(s).textContent=n);
+  ['#nLogo','#lLogo'].forEach(s=>setLogo($(s)));
+}
+
 function theme(t){document.body.className=t;store.set('rg_theme',t);$$('.themes button').forEach(b=>b.classList.toggle('on',b.dataset.t===t))}
 function tab(v){
-  if(currentUserRole==='caja' && v==='set') return toast('Acceso restringido a Administradores', 1);
+  if(currentUserRole==='caja' && v==='set') return toast('Solo el Admin Web accede al Mantenimiento', 1);
   $$('nav button[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
   $$('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));
-  const msgs = {pos: 'Punto de venta activo', debts: 'Gestión de cuentas por cobrar', stock: 'Control de inventario', rep: 'Reporte diario de caja', set: 'Configuración del sistema'};
+  const msgs = {pos: 'Punto de venta y facturación', debts: 'Gestión de fiados', stock: 'Inventario general', rep: 'Reporte de caja', set: 'Mantenimiento del sistema'};
   if (msgs[v]) setAnime(msgs[v], 'pop');
 }
 function status(ok,t){const s=$('#st');s.textContent=t;s.className='pill'+(ok?' ok':'')}
 
 function applyPermissions(){
   const isAdmin = currentUserRole === 'admin';
-  $('#roleBadge').textContent = 'Rol: ' + (isAdmin ? 'Administrador' : 'Caja/Trabajador');
+  $('#roleBadge').textContent = 'Rol: ' + (isAdmin ? 'Admin (Web Master)' : 'Socio / Trabajador');
   $('#navSet').hidden = !isAdmin;
-  $('#adminCostField').hidden = !isAdmin;
-  $('#cardProfit').hidden = !isAdmin;
+  renderStock();
 }
 
 function setLocked(l){
@@ -544,11 +558,10 @@ function setLocked(l){
     setTimeout(()=>$('#auth-pin').focus(),0);
   } else {
     applyPermissions();
-    setAnime('Bienvenido (' + currentUserRole.toUpperCase() + ')', 'celebrate');
+    setAnime('Modo: ' + (currentUserRole === 'admin' ? 'Administrador Web' : 'Socio Comercial'), 'celebrate');
   }
 }
 
-/* AUTENTICACIÓN POR ROLES */
 function unlock(e){
   if(e)e.preventDefault();
   const u=$('#auth-user').value.trim().toLowerCase();
@@ -562,7 +575,7 @@ function unlock(e){
     setLocked(false);
     $('#auth-pin').value='';
     refresh();
-  } else if((u === 'caja' || u === 'trabajador') && p === cajaPin) {
+  } else if((u === 'caja' || u === 'socio' || u === 'trabajador') && p === cajaPin) {
     currentUserRole = 'caja';
     setLocked(false);
     $('#auth-pin').value='';
@@ -573,6 +586,20 @@ function unlock(e){
   }
 }
 $('#authForm').addEventListener('submit', unlock);
+
+/* FUNCIÓN DE CONFIRMACIÓN POR PIN PARA BORRAR */
+function verifyPinToAuthorize(actionName) {
+  const adminPin = LS('rg_pin_admin', '1234');
+  const cajaPin = LS('rg_pin_caja', '0000');
+  const entered = prompt(`[SEGURIDAD] Ingrese su PIN de seguridad para ${actionName}:`);
+  if (!entered) return false;
+  if (entered === adminPin || entered === cajaPin) {
+    return true;
+  } else {
+    toast('PIN de seguridad incorrecto', 1);
+    return false;
+  }
+}
 
 async function connect(){
   if(!window.supabase) return status(false, 'Cargando librería...');
@@ -597,14 +624,14 @@ function setupRealtime(){
 function refresh(){loadProducts();loadDebts();loadReport()}
 
 async function saveSettings(){
-  if(currentUserRole !== 'admin') return toast('Solo el admin puede cambiar ajustes', 1);
+  if(currentUserRole !== 'admin') return toast('Solo el Admin de la web puede guardar ajustes', 1);
   store.set('rg_name',$('#sName').value.trim()||'Rincón Goloso');
   store.set('rg_logo',$('#sLogo').value.trim());
   
   if($('#sPinAdmin').value.trim()) store.set('rg_pin_admin', $('#sPinAdmin').value.trim());
   if($('#sPinCaja').value.trim()) store.set('rg_pin_caja', $('#sPinCaja').value.trim());
   
-  toast('Ajustes y PINs actualizados');
+  toast('Ajustes y PINs actualizados con éxito');
   $('#sPinAdmin').value = ''; $('#sPinCaja').value = '';
   brand();
 }
@@ -641,7 +668,10 @@ function renderStock(){
     const img=p.image_url?'<img src="'+esc(p.image_url)+'" width="32" height="32" style="border-radius:8px;object-fit:cover" alt="">':'-';
     const lowClass=p.stock<=5?'low':'';
     const lowText=p.stock<=5?' (Bajo)':'';
-    html+='<tr><td>'+img+'</td><td>'+esc(p.name)+'</td><td>'+esc(p.category||'-')+'</td><td>'+esc(p.subtype||'-')+'</td><td>'+esc(p.brand||'-')+'</td><td>'+money(p.sale_price)+'</td><td class="'+lowClass+'">'+p.stock+lowText+'</td></tr>';
+    
+    const marginPct = p.sale_price > 0 ? (((p.sale_price - p.purchase_price)/p.sale_price)*100).toFixed(0)+'%' : '0%';
+
+    html+='<tr><td>'+img+'</td><td>'+esc(p.name)+'</td><td>'+esc(p.category||'-')+'</td><td>'+esc(p.subtype||'-')+'</td><td>'+esc(p.brand||'-')+'</td><td>'+money(p.sale_price)+'</td><td>'+money(p.purchase_price)+'</td><td><b>'+marginPct+'</b></td><td class="'+lowClass+'">'+p.stock+lowText+'</td><td><button class="sub" data-del-prod="'+p.id+'" style="padding:2px 8px;background:#ff3f34;color:#fff;border:0">Borrar</button></td></tr>';
   }
   $('#stockT tbody').innerHTML=html;
 }
@@ -655,11 +685,10 @@ async function saveProduct(e){
     if(error)return toast('Error al subir foto: '+error.message,1);
     image_url=sb.storage.from('products').getPublicUrl(n).data.publicUrl;
   }
-  const purchasePrice = currentUserRole === 'admin' ? (+$('#pp').value) : 0;
-  const{error}=await sb.from('products').insert({name:$('#pn').value.trim(),category:$('#pc').value,subtype:$('#ps').value.trim()||null,brand:$('#pb').value.trim()||null,barcode:$('#pk').value.trim()||null,purchase_price:purchasePrice,sale_price:+$('#pv').value,stock:+$('#pst').value,image_url});
+  const{error}=await sb.from('products').insert({name:$('#pn').value.trim(),category:$('#pc').value,subtype:$('#ps').value.trim()\vert{}\vert{}null,brand:$('#pb').value.trim()||null,barcode:$('#pk').value.trim()\vert{}\vert{}null,purchase_price:+$('#pp').value,sale_price:+$('#pv').value,stock:+$('#pst').value,image_url});
   if(error)return toast(error.message,1);
   e.target.reset();toast('Producto guardado');loadProducts();
-  setAnime('Producto publicado para todos', 'celebrate');
+  setAnime('Producto guardado con éxito', 'celebrate');
 }
 
 function add(id){
@@ -681,22 +710,23 @@ function drawCart(){
 }
 function change(){const d=(parseFloat($('#cash').value)||0)-total();$('#chg').value=!$('#cash').value?'$0.00':d>=0?money(d):'Insuficiente'}
 
+/* FACTURA CON LOGO DEL LOCAL OBLIGATORIO */
 function ticket(t, cash){
   const n = LS('rg_name', 'Rincón Goloso');
   const l = LS('rg_logo');
-  let html = '<div style="text-align:center">';
-  if (l) html += '<img src="' + l + '" alt="" style="max-height:48px"><br>';
-  html += '<b>' + n.toUpperCase() + '</b><br>Comprobante de caja</div><hr>';
-  html += new Date().toLocaleString() + '<br>Cliente: ' + ($('#cust').value || 'Consumidor final') + '<hr>';
+  let html = '<div class="header">';
+  if (l) html += '<img class="logo-img" src="' + esc(l) + '" alt="Logo"><br>';
+  html += '<b style="font-size:14px">' + esc(n).toUpperCase() + '</b><br>Factura de Venta / Comprobante</div><hr style="border:0;border-top:1px dashed #000;margin:8px 0">';
+  html += 'Fecha: ' + new Date().toLocaleString() + '<br>Cliente: ' + esc($('#cust').value || 'Consumidor final') + '<hr style="border:0;border-top:1px dashed #000;margin:8px 0">';
   for (let i = 0; i < cart.length; i++) {
-    html += '<div class="l"><span>' + cart[i].qty + 'x ' + cart[i].name + '</span><span>$' + (cart[i].price * cart[i].qty).toFixed(2) + '</span></div>';
+    html += '<div class="l"><span>' + cart[i].qty + 'x ' + esc(cart[i].name) + '</span><span>$' + (cart[i].price * cart[i].qty).toFixed(2) + '</span></div>';
   }
-  html += '<hr><div class="l"><b>TOTAL</b><b>$' + t.toFixed(2) + '</b></div>';
+  html += '<hr style="border:0;border-top:1px dashed #000;margin:8px 0"><div class="l" style="font-size:14px"><b>TOTAL FACTURADO</b><b>$' + t.toFixed(2) + '</b></div>';
   if (cash) {
-    html += '<div class="l"><span>Efectivo</span><span>$' + cash.toFixed(2) + '</span></div>';
+    html += '<div class="l"><span>Efectivo Recibido</span><span>$' + cash.toFixed(2) + '</span></div>';
     html += '<div class="l"><span>Vuelto</span><span>$' + (cash - t).toFixed(2) + '</span></div>';
   }
-  html += '<hr><div style="text-align:center">Gracias por su compra</div>';
+  html += '<hr style="border:0;border-top:1px dashed #000;margin:8px 0"><div style="text-align:center;font-size:11px">¡Gracias por su compra en ' + esc(n) + '!</div>';
   $('#ticket').innerHTML = html;
   print();
 }
@@ -710,8 +740,8 @@ async function pay(printIt){
   if(error)return toast(error.message,1);
   if(printIt)ticket(t,cash);
   cart=[];drawCart();$('#cash').value='';$('#cust').value='';
-  toast('Venta registrada con éxito');
-  setAnime('Venta completada', 'celebrate');
+  toast('Venta registrada');
+  setAnime('Venta emitida', 'celebrate');
   refresh();
 }
 
@@ -723,7 +753,7 @@ async function loadDebts(){
   let html='';
   for(let i=0;i<debts.length;i++){
     const d=debts[i];
-    html+='<tr><td>'+esc(d.customer_name)+'</td><td>'+money(d.amount)+'</td><td>'+esc(d.details||'-')+'</td><td>'+new Date(d.created_at).toLocaleDateString()+'</td><td><button class="sub" data-pay-debt="'+d.id+'">Cobrar</button></td></tr>';
+    html+='<tr><td>'+esc(d.customer_name)+'</td><td>'+money(d.amount)+'</td><td>'+esc(d.details||'-')+'</td><td>'+new Date(d.created_at).toLocaleDateString()+'</td><td><button class="sub" data-pay-debt="'+d.id+'">Cobrar / Borrar</button></td></tr>';
   }
   $('#debts tbody').innerHTML=html||'<tr><td colspan="5" style="text-align:center;color:var(--tx2)">Sin cuentas pendientes</td></tr>';
 }
@@ -733,7 +763,7 @@ async function saveDebt(e){
   const{error}=await sb.from('debts').insert({customer_name:$('#dn').value.trim(),amount:+$('#da').value,details:$('#dt').value.trim()});
   if(error)return toast(error.message,1);
   e.target.reset();toast('Fiado registrado');loadDebts();
-  setAnime('Fiado registrado correctamente', 'celebrate');
+  setAnime('Fiado guardado', 'celebrate');
 }
 
 async function loadReport(){
@@ -741,39 +771,52 @@ async function loadReport(){
   const{data,error}=await sb.rpc('get_daily_report',{p_date:today()});
   if(error||!data)return;
   $('#rS').textContent=money(data.total_sales);
-  $('#rN').textContent=data.sales_count+' ventas realizadas';
-  $('#rP').textContent=money(data.total_profit);
-}
-
-$$('nav button[data-v]').forEach(b=>b.onclick=()=>tab(b.dataset.v));
-$$('.themes button').forEach(b=>b.onclick=()=>theme(b.dataset.t));
-$('#relock').onclick=()=>setLocked(true);
+  $('#rN').textContent=data.sales_count+' ventas realizadas hoy';
+  $('#rP').textContent=money(data.total_profit); }  $$('nav button[data-v]').forEach(b=>b.onclick=()=>tab(b.dataset.v));$$('.themes button').forEach(b=>b.onclick=()=>theme(b.dataset.t));$('#relock').onclick=()=>setLocked(true);
 $('#grid').onclick=e=>{const b=e.target.closest('.pcard');if(b)add(b.dataset.id)};
 $('#cart').onclick=e=>{
   const b=e.target.closest('button');if(!b)return;
   const id=b.dataset.id,item=cart.find(x=>x.id===id);if(!item)return;
   if(b.dataset.a==='+')add(id);else{item.qty--;if(item.qty<=0)cart=cart.filter(x=>x.id!==id);drawCart()}
 };
-$('#cash').oninput=change;
-$$('[data-cash]').forEach(b=>b.onclick=()=>{
+$('#cash').oninput=change; $$('[data-cash]').forEach(b=>b.onclick=()=>{
   const c=$('#cash');c.value=((parseFloat(c.value)||0)+parseFloat(b.dataset.cash)).toFixed(2);change();
 });
 $('#pay').onclick=()=>pay(false);
 $('#payPrint').onclick=()=>pay(true);
 $('#pForm').onsubmit=saveProduct;
 $('#debtForm').onsubmit=saveDebt;
+
+/* BORRAR FIADO CON PIN */
 $('#debts').onclick=async e=>{
   const b=e.target.closest('[data-pay-debt]');if(!b)return;
+  if(!verifyPinToAuthorize('cobrar o borrar este fiado')) return;
   const{error}=await sb.from('debts').update({paid:true}).eq('id',b.dataset.payDebt);
   if(error)return toast(error.message,1);
-  toast('Fiado cobrado');loadDebts();
-  setAnime('Fiado cobrado', 'celebrate');
+  toast('Fiado cobrado / borrado');loadDebts();
+  setAnime('Cuenta saldada', 'celebrate');
 };
+
+/* BORRAR PRODUCTO CON PIN */
+$('#stockT').onclick=async e=>{
+  const b=e.target.closest('[data-del-prod]');
+  if(!b) return;
+  if(!verifyPinToAuthorize('eliminar este producto')) return;
+  const {error} = await sb.from('products').delete().eq('id', b.dataset.delProd);
+  if(error) return toast(error.message, 1);
+  toast('Producto eliminado');
+  loadProducts();
+};
+
+/* CIERRE DE CAJA CON PIN */
 $('#closeDay').onclick=async()=>{
-  if(!confirm('¿Cerrar caja y respaldar el día anterior?'))return;
+  if(!verifyPinToAuthorize('cerrar la caja del día')) return;
   toast('Caja cerrada con éxito');
 };
-$('#csv').onclick=()=>{toast('Exportando reporte...');};
+
+$('#csv').onclick=()=>{
+  toast('Exportando reporte...');
+};
 $('#saveSet').onclick=saveSettings;
 ['#q','#fcat','#fsub','#fbrand'].forEach(s=>$(s).oninput=renderGrid);
 
