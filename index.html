@@ -331,19 +331,21 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
 </head>
 <body class="t1">
 
-<div id="lock" role="dialog" aria-modal="true" aria-label="Acceso"><form class="card" id="authForm">
-  <div class="logo" id="lLogo" style="margin:0 auto">RG</div>
-  <h2 id="lName">Rincón Goloso</h2>
-  <p style="font-size:12px;color:var(--tx2)">Ingresa tu usuario y PIN de acceso</p>
-  <input id="auth-user" type="text" placeholder="Usuario (admin o socio)" autocomplete="username" value="admin" required>
-  <input id="auth-pin" type="password" placeholder="PIN de acceso" autocomplete="current-password" required>
-  <button type="submit" id="unlock">Entrar al Sistema</button>
-  <div style="background:var(--main-bg);padding:10px;border-radius:12px;font-size:11px;color:var(--tx2);text-align:left">
-    <b>Accesos Directos:</b><br>
-    • Admin: usuario <code>admin</code> | PIN <code>1234</code><br>
-    • Socio: usuario <code>socio</code> | PIN <code>0000</code>
+<div id="lock" role="dialog" aria-modal="true" aria-label="Acceso">
+  <div class="card" id="authBox">
+    <div class="logo" id="lLogo" style="margin:0 auto">RG</div>
+    <h2 id="lName">Rincón Goloso</h2>
+    <p style="font-size:12px;color:var(--tx2)">Ingresa tu usuario y PIN de acceso</p>
+    <input id="auth-user" type="text" placeholder="Usuario (admin o socio)" value="admin">
+    <input id="auth-pin" type="password" placeholder="PIN de acceso">
+    <button id="unlockBtn">Entrar al Sistema</button>
+    <div style="background:var(--main-bg);padding:10px;border-radius:12px;font-size:11px;color:var(--tx2);text-align:left">
+      <b>Accesos Directos Globables:</b><br>
+      • Admin: <code>admin</code><br>
+      • Socio: <code>socio</code>
+    </div>
   </div>
-</form></div>
+</div>
 
 <div class="app-viewport">
   <nav>
@@ -451,11 +453,11 @@ th { color: var(--tx2); font-size: 11px; font-weight: 800; text-transform: upper
         <div class="f"><label for="sName">Nombre del Local</label><input id="sName"></div>
         <div class="f"><label for="sLogo">URL del Logotipo del Local (Para Facturas)</label><input id="sLogo" placeholder="https://…/logo.png"></div>
       </div></div>
-      <div class="card"><h3>Seguridad y PINs</h3><div class="f" style="gap:10px">
-        <div class="f"><label for="sPinAdmin">PIN Admin Web (Predeterminado: 1234)</label><input id="sPinAdmin" type="password" placeholder="Nuevo PIN Admin"></div>
-        <div class="f"><label for="sPinCaja">PIN Socio/Trabajador (Predeterminado: 0000)</label><input id="sPinCaja" type="password" placeholder="Nuevo PIN Socio"></div>
+      <div class="card"><h3>Seguridad y PINs (Sincronizado en la nube)</h3><div class="f" style="gap:10px">
+        <div class="f"><label for="sPinAdmin">PIN Admin Web</label><input id="sPinAdmin" type="password" placeholder="Nuevo PIN Admin"></div>
+        <div class="f"><label for="sPinCaja">PIN Socio/Trabajador</label><input id="sPinCaja" type="password" placeholder="Nuevo PIN Socio"></div>
       </div></div>
-    </div><button id="saveSet" style="align-self:flex-start">Guardar Mantenimiento / Ajustes</button></section>
+    </div><button id="saveSet" style="align-self:flex-start">Guardar Mantenimiento / Ajustes en Nube</button></section>
   </main>
 
   <div class="anime-assistant" id="animeAssistant" title="Haz clic para cambiar de asistente">
@@ -474,13 +476,19 @@ const CONFIG = {
 };
 
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
-const mem={},store={get:k=>{try{return localStorage.getItem(k)}catch(e){return mem[k]??null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){mem[k]=String(v)}}};
-const LS=(k,d='')=>store.get(k)||d;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]||c));
 const money=n=>'$'+Number(n||0).toFixed(2);
 const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Guayaquil'}).format(new Date());
 const CATS=['Lácteos','Snacks/Frituras','Confitería/Dulces','Galletas','Bebidas','Helados/Congelados'];
 let sb=null,products=[],cart=[],debts=[],currentUserRole='admin';
+
+// AJUSTES GLOBALES DESDE SUPABASE
+let globalSettings = {
+  pin_admin: '1234',
+  pin_caja: '0000',
+  store_name: 'Rincón Goloso',
+  store_logo: ''
+};
 
 const animeCharacters = [
   { name: "Yuki", svg: '<svg viewBox="0 0 100 100" width="40" height="40"><circle cx="50" cy="55" r="38" fill="#38bdf8" stroke="#0f172a" stroke-width="4"/><circle cx="35" cy="25" r="12" fill="#38bdf8" stroke="#0f172a" stroke-width="4"/><circle cx="65" cy="25" r="12" fill="#38bdf8" stroke="#0f172a" stroke-width="4"/><circle cx="50" cy="58" r="26" fill="#fff" stroke="#0f172a" stroke-width="3"/><circle cx="42" cy="52" r="4" fill="#0f172a"/><circle cx="58" cy="52" r="4" fill="#0f172a"/><path d="M46 62 Q50 66 54 62" stroke="#0f172a" stroke-width="3" stroke-linecap="round"/><circle cx="36" cy="58" r="4" fill="#ff7675" opacity="0.6"/><circle cx="64" cy="58" r="4" fill="#ff7675" opacity="0.6"/></svg>' },
@@ -519,22 +527,23 @@ function toast(m,err){
 
 function setLogo(el){
   el.textContent='';
-  const u=LS('rg_logo');
-  if(u){
-    const i=new Image();i.src=u;i.alt='';el.append(i);
+  if(globalSettings.store_logo){
+    const i=new Image();i.src=globalSettings.store_logo;i.alt='';el.append(i);
   } else {
     el.textContent='RG';
   }
 }
 
 function brand(){
-  const n=LS('rg_name','Rincón Goloso');
+  const n=globalSettings.store_name || 'Rincón Goloso';
   document.title=n;
   ['#hName','#lName'].forEach(s=>$(s).textContent=n);
   ['#nLogo','#lLogo'].forEach(s=>setLogo($(s)));
+  $('#sName').value = globalSettings.store_name;
+  $('#sLogo').value = globalSettings.store_logo;
 }
 
-function theme(t){document.body.className=t;store.set('rg_theme',t);$$('.themes button').forEach(b=>b.classList.toggle('on',b.dataset.t===t))}
+function theme(t){document.body.className=t;$$('.themes button').forEach(b=>b.classList.toggle('on',b.dataset.t===t))}
 function tab(v){
   if(currentUserRole==='caja' && v==='set') return toast('Solo el Admin Web accede al Mantenimiento', 1);
   $$('nav button[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
@@ -564,44 +573,72 @@ function setLocked(l){
   }
 }
 
-/* AUTENTICACIÓN DIRECTA Y LIMPIEZA DE PINs */
-function unlock(e){
-  if(e) e.preventDefault();
+/* CARGAR Y GUARDAR CONFIGURACIÓN EN SUPABASE */
+async function loadSettingsFromCloud(){
+  if(!sb) return;
+  const {data, error} = await sb.from('settings').select('*');
+  if(!error && data){
+    data.forEach(item => {
+      globalSettings[item.key] = item.value;
+    });
+    brand();
+  }
+}
+
+async function saveSettings(){
+  if(currentUserRole !== 'admin') return toast('Solo el Admin de la web puede guardar ajustes', 1);
+  const newName = $('#sName').value.trim() || 'Rincón Goloso';
+  const newLogo = $('#sLogo').value.trim();
+  const newPinAdmin = $('#sPinAdmin').value.trim() || globalSettings.pin_admin;
+  const newPinCaja = $('#sPinCaja').value.trim() || globalSettings.pin_caja;
+
+  const updates = [
+    { key: 'store_name', value: newName },
+    { key: 'store_logo', value: newLogo },
+    { key: 'pin_admin', value: newPinAdmin },
+    { key: 'pin_caja', value: newPinCaja }
+  ];
+
+  const { error } = await sb.from('settings').upsert(updates);
+  if(error) return toast('Error al guardar ajustes: '+error.message, 1);
+
+  globalSettings.store_name = newName;
+  globalSettings.store_logo = newLogo;
+  globalSettings.pin_admin = newPinAdmin;
+  globalSettings.pin_caja = newPinCaja;
+
+  toast('Ajustes y PINs sincronizados en la nube');
+  $('#sPinAdmin').value = ''; $('#sPinCaja').value = '';
+  brand();
+}
+
+/* LOGIN PURO CON CONFIGURACIÓN DE SUPABASE */
+function handleLogin() {
   const u = $('#auth-user').value.trim().toLowerCase();
   const p = $('#auth-pin').value.trim();
   
-  const savedAdminPin = LS('rg_pin_admin');
-  const savedCajaPin = LS('rg_pin_caja');
-  
-  const adminPin = (savedAdminPin && savedAdminPin !== 'null') ? savedAdminPin : '1234';
-  const cajaPin = (savedCajaPin && savedCajaPin !== 'null') ? savedCajaPin : '0000';
-  
-  if ((u === 'admin') && (p === adminPin || p === '1234')) {
+  if (u === 'admin' && p === globalSettings.pin_admin) {
     currentUserRole = 'admin';
     setLocked(false);
     $('#auth-pin').value = '';
     refresh();
-  } else if ((u === 'socio' || u === 'caja' || u === 'trabajador') && (p === cajaPin || p === '0000')) {
+  } else if ((u === 'socio' || u === 'caja' || u === 'trabajador') && p === globalSettings.pin_caja) {
     currentUserRole = 'caja';
     setLocked(false);
     $('#auth-pin').value = '';
     tab('pos');
     refresh();
   } else {
-    toast('Usuario o PIN incorrecto. Usa admin/1234 o socio/0000', 1);
+    toast('Usuario o PIN incorrecto', 1);
   }
 }
-$('#authForm').addEventListener('submit', unlock);
+$('#unlockBtn').onclick = handleLogin;
+$('#auth-pin').onkeydown = e => { if (e.key === 'Enter') handleLogin(); };
 
 function verifyPinToAuthorize(actionName) {
-  const savedAdminPin = LS('rg_pin_admin');
-  const savedCajaPin = LS('rg_pin_caja');
-  const adminPin = (savedAdminPin && savedAdminPin !== 'null') ? savedAdminPin : '1234';
-  const cajaPin = (savedCajaPin && savedCajaPin !== 'null') ? savedCajaPin : '0000';
-
   const entered = prompt(`[SEGURIDAD] Ingrese PIN para ${actionName}:`);
   if (!entered) return false;
-  if (entered === adminPin || entered === cajaPin || entered === '1234' || entered === '0000') {
+  if (entered === globalSettings.pin_admin || entered === globalSettings.pin_caja) {
     return true;
   } else {
     toast('PIN de seguridad incorrecto', 1);
@@ -614,6 +651,7 @@ async function connect(){
   try {
     sb = supabase.createClient(CONFIG.url, CONFIG.key);
     status(true, 'Conectado a la Red');
+    await loadSettingsFromCloud();
     setupRealtime();
   } catch(err) {
     status(false, 'Error de conexión');
@@ -626,23 +664,11 @@ function setupRealtime(){
     .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => loadProducts())
     .on('postgres_changes', { event: '*', schema: 'public', table: 'debts' }, () => loadDebts())
     .on('postgres_changes', { event: '*', schema: 'public', table: 'sales' }, () => loadReport())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, () => loadSettingsFromCloud())
     .subscribe();
 }
 
-function refresh(){loadProducts();loadDebts();loadReport()}
-
-async function saveSettings(){
-  if(currentUserRole !== 'admin') return toast('Solo el Admin de la web puede guardar ajustes', 1);
-  store.set('rg_name',$('#sName').value.trim()||'Rincón Goloso');
-  store.set('rg_logo',$('#sLogo').value.trim());
-  
-  if($('#sPinAdmin').value.trim()) store.set('rg_pin_admin', $('#sPinAdmin').value.trim());
-  if($('#sPinCaja').value.trim()) store.set('rg_pin_caja', $('#sPinCaja').value.trim());
-  
-  toast('Ajustes y PINs actualizados con éxito');
-  $('#sPinAdmin').value = ''; $('#sPinCaja').value = '';
-  brand();
-}
+function refresh(){loadProducts();loadDebts();loadReport();loadSettingsFromCloud();}
 
 async function loadProducts(){
   if(!sb) return;
@@ -719,8 +745,8 @@ function drawCart(){
 function change(){const d=(parseFloat($('#cash').value)||0)-total();$('#chg').value=!$('#cash').value?'$0.00':d>=0?money(d):'Insuficiente'}
 
 function ticket(t, cash){
-  const n = LS('rg_name', 'Rincón Goloso');
-  const l = LS('rg_logo');
+  const n = globalSettings.store_name || 'Rincón Goloso';
+  const l = globalSettings.store_logo;
   let html = '<div class="header">';
   if (l) html += '<img class="logo-img" src="' + esc(l) + '" alt="Logo"><br>';
   html += '<b style="font-size:14px">' + esc(n).toUpperCase() + '</b><br>Factura de Venta / Comprobante</div><hr style="border:0;border-top:1px dashed #000;margin:8px 0">';
@@ -825,10 +851,8 @@ $('#saveSet').onclick=saveSettings;
 ['#q','#fcat','#fsub','#fbrand'].forEach(s=>$(s).oninput=renderGrid);
 
 brand();
-const t=store.get('rg_theme')||'t1';theme(t);
+theme('t1');
 $('#sUrl').value = CONFIG.url;
-$('#sName').value = LS('rg_name','Rincón Goloso');
-$('#sLogo').value = LS('rg_logo');
 $('#animeAvatar').innerHTML = animeCharacters[0].svg;
 
 setLocked(true);
