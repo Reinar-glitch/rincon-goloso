@@ -595,7 +595,9 @@ async function loadSettingsFromCloud(){
       });
       brand();
     }
-  } catch(e) {}
+  } catch(e) {
+    // Si falla la red, mantenemos los valores por defecto sin bloquear la app
+  }
 }
 
 async function saveSettings(){
@@ -683,10 +685,12 @@ async function connect(){
   try {
     sb = supabase.createClient(CONFIG.url, CONFIG.key);
     status(true, 'Conectado a la Red');
-    await loadSettingsFromCloud();
+    
+    // Intentamos cargar de la nube en segundo plano pero dejamos el sistema listo
+    loadSettingsFromCloud().catch(() => {});
     setupRealtime();
   } catch(err) {
-    status(false, 'Error de conexión');
+    status(false, 'Modo local (Sin red)');
   }
 }
 
