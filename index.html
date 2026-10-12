@@ -279,9 +279,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac);back
 /* ============ CONFIG ============
    Pega aquí la URL y la clave ANON (Supabase > Project Settings > API > anon public).
    Nunca uses la service_role en el navegador. */
+/* >>> PEGA AQUÍ TU API KEY ANON/PUBLISHABLE, entre las comillas (una sola vez; así todos los dispositivos conectan solos) <<< */
+const EMBEDDED_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFteW5qcWJhYWtwc29ldGV0eWZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE3Mzg1MDIsImV4cCI6MjEwNzMxNDUwMn0.FbDlOtXz-8IBeQS76kBEmej9d0QvGx8umiqqCFlk7jc";
 const CONFIG = {
   url: (window.RG_CONFIG && window.RG_CONFIG.url) || "https://qmynjqbaakpsoetetyfe.supabase.co",
-  key: (window.RG_CONFIG && window.RG_CONFIG.key) || "", // viene de config.js (compartido por todos los dispositivos)
+  key: [window.RG_CONFIG && window.RG_CONFIG.key, EMBEDDED_KEY].find(k => k && !keyProblem(k)) || "", // viene de config.js (compartido por todos los dispositivos)
   bucket: "products",
   timeout: 8000
 };
@@ -320,6 +322,16 @@ async function safe(p, ms) { // nunca lanza: devuelve {data, error}
     return r || {data: null, error: new Error('Sin respuesta')};
   }
   catch (e) { return {data: null, error: e}; }
+}
+/* fetch compatible con entornos que no pueden clonar objetos Headers (iframes, vistas previas, extensiones) */
+function plainFetch(input, init) {
+  try {
+    if (init && init.headers && !Array.isArray(init.headers) && typeof init.headers.forEach === 'function' && Object.getPrototypeOf(init.headers) !== Object.prototype) {
+      const h = {}; init.headers.forEach((v, k) => { h[k] = v; });
+      init = Object.assign({}, init, {headers: h});
+    }
+  } catch (_) {}
+  return fetch(input, init);
 }
 function keyProblem(k) {
   k = String(k || '').trim();
@@ -422,7 +434,7 @@ function connect() {
   if (prob) { status('off', prob); return; }
   if (!window.supabase) { status('off', 'Modo local'); if (connectTries++ < 30) setTimeout(connect, 5000); return; }
   try {
-    sb = supabase.createClient(c.url, c.key, {auth: {persistSession: false, autoRefreshToken: false, detectSessionInUrl: false}});
+    sb = supabase.createClient(c.url, c.key, {global: {fetch: plainFetch}, auth: {persistSession: false, autoRefreshToken: false, detectSessionInUrl: false}});
     status('ok', 'Conectado');
     setupRealtime();
     bgRefresh();
@@ -847,6 +859,15 @@ setInterval(() => { // respaldo por si Realtime no está activado en Supabase
   if ($('#lock').hidden) { loadProducts(); loadDebts(); loadReport(); }
 }, 60000);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { connect(); bgRefresh(); } });
+
+/* Red de seguridad: ningún error suelto congela la app */
+function softError(m) {
+  m = String(m || '');
+  console.warn('[RG]', m);
+  if (m && !/DataCloneError|ResizeObserver|Script error/i.test(m)) toast('Aviso: ' + m.slice(0, 110), 1);
+}
+window.addEventListener('unhandledrejection', e => { e.preventDefault(); softError(e.reason && e.reason.message || e.reason); });
+window.addEventListener('error', e => softError(e.message));
 
 /* ---------- ARRANQUE: UI primero, red después ---------- */
 brand(); theme(LS.get('rg_theme_own', '') || S.theme || 't1');
