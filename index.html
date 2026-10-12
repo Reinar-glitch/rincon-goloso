@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Rincón Goloso</title>
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" defer></script>
@@ -80,13 +80,13 @@ th{color:var(--tx2);font-size:11px;text-transform:uppercase}
 @media(max-width:760px){.app-viewport{flex-direction:column}nav{position:fixed;bottom:0;left:0;right:0;width:100%;height:auto;flex-direction:row;justify-content:space-around;padding:8px 0}nav button{border-radius:16px}main{border-radius:0;padding:20px 16px 100px}.pos{grid-template-columns:1fr}.anime-assistant{bottom:84px;right:16px}}
 
 /* ===== 3D, animaciones y mejor visibilidad ===== */
-body{perspective:1400px;font-size:15px}
+body{font-size:15px;-webkit-text-size-adjust:100%}
 body::before,body::after{content:'';position:fixed;border-radius:50%;filter:blur(70px);opacity:.45;z-index:0;pointer-events:none;animation:orb 14s ease-in-out infinite alternate}
 body::before{width:42vmax;height:42vmax;left:-10vmax;top:-12vmax;background:rgba(255,255,255,.55)}
 body::after{width:36vmax;height:36vmax;right:-8vmax;bottom:-12vmax;background:rgba(0,210,211,.5);animation-delay:-6s}
 @keyframes orb{to{transform:translate3d(6vmax,4vmax,0) scale(1.15)}}
-.app-viewport{z-index:1;transform-style:preserve-3d;animation:appIn .7s cubic-bezier(.16,1,.3,1) backwards}
-@keyframes appIn{from{opacity:0;transform:translateY(30px) rotateX(8deg) scale(.97)}}
+.app-viewport{z-index:1;animation:appIn .7s cubic-bezier(.16,1,.3,1) backwards}
+@keyframes appIn{from{opacity:0;transform:perspective(1400px) translateY(30px) rotateX(8deg) scale(.97)}}
 .card{transition:transform .3s cubic-bezier(.16,1,.3,1),box-shadow .3s}
 .card:hover{transform:translateY(-3px);box-shadow:0 18px 38px rgba(0,0,0,.12)}
 .view.on{animation:viewIn .45s cubic-bezier(.16,1,.3,1) backwards}
@@ -136,9 +136,77 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac);back
 @keyframes menuIn{from{opacity:0;transform:translateY(8px) scale(.92)}}
 #animeShow{position:fixed;right:16px;bottom:16px;z-index:50;width:46px;height:46px;padding:5px;border-radius:50%;background:var(--card-bg);border:1px solid var(--bd);opacity:.85;display:grid;place-items:center}
 @media(max-width:760px){#animeShow{bottom:84px}}
+
+/* ===== Adaptación PC + móvil ===== */
+.fold>summary{cursor:pointer;font-size:12px;font-weight:800;color:var(--tx2);text-transform:uppercase;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.fold>summary::-webkit-details-marker{display:none}
+.fold>summary::after{content:'▾';font-size:16px;transition:transform .25s}
+.fold[open]>summary{margin-bottom:16px}
+.fold[open]>summary::after{transform:rotate(180deg)}
+nav button .ic{font-size:20px;line-height:1}
+.badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:800;background:rgba(245,158,11,.18);color:#b45309}
+.badge.zero{background:rgba(255,63,52,.14);color:#dc2626}
+#cartBackdrop,.cart-close,#cartBar{display:none}
+#cartBar.bump{animation:bump .35s cubic-bezier(.34,1.56,.64,1)}
+@keyframes bump{50%{transform:scale(1.05)}}
+@media(min-width:761px){#v-pos .pos>.card:last-child{position:sticky;top:0;align-self:start}.grid{max-height:58vh}}
+@media(max-width:1024px){nav{width:84px}}
+@media(max-width:900px){.app-viewport{height:100dvh}body{min-height:100dvh}}
+@media(max-width:760px){
+ body{padding:0;display:block}
+ .app-viewport{display:block;height:100dvh;border-radius:0;overflow:hidden}
+ nav{position:fixed;left:0;right:0;bottom:0;width:100%;height:auto;flex-direction:row;justify-content:space-around;gap:2px;padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:60;box-shadow:0 -8px 24px rgba(0,0,0,.25)}
+ nav .logo{display:none}
+ nav button{flex:1;padding:7px 2px;gap:1px;border-radius:14px;min-height:54px}
+ nav button.on{background:var(--main-bg)}
+ nav button small{font-size:10px}
+ .bdg{top:2px;right:16%}
+ main{height:100dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:0;padding:calc(12px + env(safe-area-inset-top)) 12px calc(88px + env(safe-area-inset-bottom))}
+ header{margin-bottom:12px;gap:8px}
+ header>div{width:100%;justify-content:space-between}
+ h1{font-size:20px}
+ .pill{margin-left:6px;padding:4px 10px;font-size:10px}
+ .card{padding:16px;border-radius:20px}
+ .card:hover{transform:none;box-shadow:var(--sh-card)}
+ .pos{grid-template-columns:1fr!important}
+ .row{grid-template-columns:1fr 1fr}
+ #q{grid-column:1/-1}
+ .grid{max-height:none;overflow:visible;grid-template-columns:repeat(2,1fr);gap:10px;padding:0}
+ .pcard{padding:12px 8px;min-height:130px}
+ input,select,textarea{font-size:16px;padding:12px 14px}
+ button{min-height:44px}
+ .tot{font-size:24px}
+ .big{font-size:28px}
+ #toast{top:calc(10px + env(safe-area-inset-top))}
+ #lock .card{width:min(360px,100%)}
+ /* pedido como panel inferior */
+ #cartCard{position:fixed;left:0;right:0;bottom:calc(66px + env(safe-area-inset-bottom));max-height:78dvh;overflow:auto;z-index:70;border-radius:24px 24px 0 0;transform:translateY(120%);visibility:hidden;transition:transform .35s cubic-bezier(.16,1,.3,1),visibility .35s}
+ body[data-cart="open"] #cartCard{transform:none;visibility:visible}
+ #cartBackdrop{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:65}
+ body:not([data-cart="open"]) #cartBackdrop{display:none}
+ body[data-cart="open"] #cartBackdrop{display:block}
+ .cart-close{display:inline-grid;float:right;padding:2px 12px;min-height:0;box-shadow:none}
+ #cartBar:not([hidden]){display:flex;position:fixed;left:12px;right:12px;bottom:calc(74px + env(safe-area-inset-bottom));z-index:55;justify-content:space-between;align-items:center;padding:14px 18px;border-radius:18px;font-size:15px;box-shadow:0 12px 28px rgba(0,0,0,.3)}
+ body:not([data-view="pos"]) #cartBar,body[data-cart="open"] #cartBar{display:none!important}
+ /* asistente discreto en el móvil */
+ .anime-assistant{bottom:calc(150px + env(safe-area-inset-bottom));right:10px;padding:6px;border-radius:50%}
+ .anime-assistant .anime-speech{display:none}
+ .anime-assistant.talk{border-radius:30px;padding:8px 14px}
+ .anime-assistant.talk .anime-speech{display:block}
+ body[data-cart="open"] .anime-assistant{visibility:hidden}
+ #animeShow{bottom:calc(150px + env(safe-area-inset-bottom))}
+ /* tablas como tarjetas */
+ table.rt thead{display:none}
+ table.rt,table.rt tbody{display:block}
+ table.rt tr{display:block;border:1px solid var(--bd);border-radius:16px;margin:10px 0;padding:8px 12px;background:var(--main-bg)}
+ table.rt td{display:flex;justify-content:space-between;align-items:center;gap:10px;border:0;padding:6px 0;text-align:right}
+ table.rt td::before{content:attr(data-label);font-weight:800;color:var(--tx2);font-size:11px;text-transform:uppercase;text-align:left}
+ table.rt td[colspan]{justify-content:center}
+ table.rt td[colspan]::before{content:none}
+}
 </style>
 </head>
-<body class="t1">
+<body class="t1" data-view="pos">
 
 <!-- La pantalla de acceso es HTML estático: aparece al instante, sin depender de la red -->
 <div id="lock" role="dialog" aria-modal="true" aria-label="Acceso">
@@ -155,11 +223,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac);back
 <div class="app-viewport">
   <nav>
     <div class="logo" id="nLogo">RG</div>
-    <button data-v="pos" class="on"><small>Venta</small></button>
-    <button data-v="debts"><small>Fiados</small></button>
-    <button data-v="stock"><small>Stock</small><i class="bdg" id="lowBdg" hidden></i></button>
-    <button data-v="rep"><small>Caja</small></button>
-    <button data-v="set" id="navSet"><small>Ajustes</small></button>
+    <button data-v="pos" class="on"><span class="ic">🛒</span><small>Venta</small></button>
+    <button data-v="debts"><span class="ic">🧾</span><small>Fiados</small></button>
+    <button data-v="stock"><span class="ic">📦</span><small>Stock</small><i class="bdg" id="lowBdg" hidden></i></button>
+    <button data-v="rep"><span class="ic">💰</span><small>Caja</small></button>
+    <button data-v="set" id="navSet"><span class="ic">⚙️</span><small>Ajustes</small></button>
   </nav>
 
   <main>
@@ -182,8 +250,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac);back
         </div>
         <div class="grid" id="grid"></div>
       </div>
-      <div class="card">
-        <h3>Pedido Actual / Facturación</h3>
+      <div class="card" id="cartCard">
+        <h3>Pedido Actual / Facturación <button type="button" class="sub cart-close" id="cartClose" aria-label="Cerrar pedido">✕</button></h3>
         <div class="tw" style="max-height:200px;overflow:auto"><table id="cart"><thead><tr><th>Producto</th><th>Cant.</th><th>Subtotal</th></tr></thead><tbody></tbody></table></div>
         <div class="tot"><span>Total</span><span id="total">$0.00</span></div>
         <div class="row" style="grid-template-columns:1fr 1fr">
@@ -206,11 +274,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac);back
           <button>Guardar Fiado</button>
         </form>
       </div>
-      <div class="card"><h3>Cuentas por Cobrar</h3><div class="tw"><table id="debts"><thead><tr><th>Deudor</th><th>Monto</th><th>Detalle</th><th>Fecha</th><th>Acción</th></tr></thead><tbody></tbody></table></div></div>
+      <div class="card"><h3>Cuentas por Cobrar</h3><div class="tw"><table id="debts" class="rt"><thead><tr><th>Deudor</th><th>Monto</th><th>Detalle</th><th>Fecha</th><th>Acción</th></tr></thead><tbody></tbody></table></div></div>
     </div></section>
 
     <section id="v-stock" class="view">
-      <div class="card"><h3>Registrar / Surtir Producto</h3>
+      <details class="card fold" id="pFold"><summary>Registrar / Surtir Producto</summary>
         <form id="pForm"><div class="row">
           <div class="f"><label for="pn">Nombre</label><input id="pn" required></div>
           <div class="f"><label for="pc">Categoría</label><select id="pc" required></select></div>
@@ -222,8 +290,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac);back
           <div class="f"><label for="pst">Stock disponible</label><input id="pst" type="number" min="0" required></div>
           <div class="f"><label for="pf">Foto del Producto</label><input id="pf" type="file" accept="image/*"></div>
         </div><button style="margin-top:14px">Guardar Producto</button></form>
-      </div>
-      <div class="card"><h3>Inventario General</h3><div class="tw"><table id="stockT"><thead><tr><th></th><th>Nombre</th><th>Categoría</th><th>Subtipo</th><th>Marca</th><th>P. Venta</th><th>P. Costo</th><th>% Margen</th><th>Stock</th><th>Acción</th></tr></thead><tbody></tbody></table></div></div>
+      </details>
+      <div class="card"><h3>Inventario General</h3><div class="tw"><table id="stockT" class="rt"><thead><tr><th></th><th>Nombre</th><th>Categoría</th><th>Subtipo</th><th>Marca</th><th>P. Venta</th><th>P. Costo</th><th>% Margen</th><th>Stock</th><th>Acción</th></tr></thead><tbody></tbody></table></div></div>
     </section>
 
     <section id="v-rep" class="view">
@@ -242,6 +310,17 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac);back
       <div class="card" style="display:flex;gap:10px;flex-wrap:wrap">
         <button id="closeDay">Cerrar caja del día</button>
         <button class="sub" id="csv">Exportar reporte CSV</button>
+      </div>
+      <div class="card" id="slowCard">
+        <h3>Productos de baja rotación</h3>
+        <div class="row" style="margin-bottom:12px">
+          <div class="f"><label for="slowDays">Período</label><select id="slowDays"><option value="15">Últimos 15 días</option><option value="30" selected>Últimos 30 días</option><option value="60">Últimos 60 días</option><option value="90">Últimos 90 días</option></select></div>
+          <div class="f"><label for="slowMax">Vendidos (máximo)</label><select id="slowMax"><option value="0">0 · sin ventas</option><option value="1">hasta 1</option><option value="2">hasta 2</option><option value="3" selected>hasta 3</option><option value="5">hasta 5</option></select></div>
+          <div class="f" style="justify-content:flex-end"><button type="button" id="slowBtn">Analizar</button></div>
+        </div>
+        <div id="slowSum" style="margin-bottom:10px;color:var(--tx2);font-size:13px">Pulsa «Analizar» para ver qué productos casi no se venden.</div>
+        <div class="tw"><table id="slowT" class="rt"><thead><tr><th>Producto</th><th>Estado</th><th>Vendidos</th><th>Stock</th><th>Última venta</th><th>Capital parado</th></tr></thead><tbody></tbody></table></div>
+        <button class="sub" id="slowCsv" type="button" style="margin-top:12px">Exportar CSV</button>
       </div>
     </section>
 
@@ -272,6 +351,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac);back
   </div>
 </div>
 
+<div id="cartBackdrop"></div>
+<button id="cartBar" type="button" hidden><span id="cartBarTxt">🛒 0</span><b id="cartBarTot">$0.00</b><span>Ver pedido ▴</span></button>
 <div id="toast" hidden></div>
 <div id="ticket"></div>
 
@@ -357,6 +438,7 @@ function setAnime(t, type) {
   el.classList.remove(...all); void el.offsetWidth;
   el.classList.add('a-' + (type || 'pop'));
   try { requestAnimationFrame(() => typeof applyPos === 'function' && applyPos()); } catch (_) {}
+  el.classList.add('talk'); clearTimeout(setAnime.tk); setAnime.tk = setTimeout(() => el.classList.remove('talk'), 4500);
   clearTimeout(setAnime.t); setAnime.t = setTimeout(() => el.classList.remove(...all), 1400);
 }
 let toastTimer;
@@ -389,6 +471,8 @@ function tab(v) {
   if (role === 'caja' && v === 'set') return toast('Solo el Admin accede a Ajustes', 1);
   $$('nav button[data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === v));
   $$('.view').forEach(s => s.classList.toggle('on', s.id === 'v-' + v));
+  document.body.dataset.view = v; delete document.body.dataset.cart;
+  if (v === 'rep' && sb && Date.now() - lastSlow > 300000) analyzeSlow();
   setAnime({pos: 'Punto de venta', debts: 'Gestión de fiados', stock: 'Inventario', rep: 'Reporte de caja', set: 'Ajustes del sistema'}[v] || '');
 }
 function status(mode, t) { const s = $('#st'); s.textContent = t; s.className = 'pill' + (mode === 'ok' ? ' ok' : mode === 'off' ? ' off' : ''); }
@@ -590,6 +674,7 @@ async function saveProduct(e) {
   }));
   if (error) return toast(error.message, 1);
   e.target.reset(); toast('Producto guardado'); setAnime('Producto guardado', 'celebrate'); loadProducts();
+  if (mqMobile.matches) $('#pFold').open = false;
 }
 
 /* ---------- Carrito ---------- */
@@ -604,6 +689,14 @@ const total = () => cart.reduce((a, i) => a + i.price * i.qty, 0);
 function drawCart() {
   $('#cart tbody').innerHTML = cart.map(i => '<tr><td>' + esc(i.name) + '</td><td class="q"><button class="sub" data-a="-" data-id="' + esc(i.id) + '">-</button> ' + i.qty + ' <button class="sub" data-a="+" data-id="' + esc(i.id) + '">+</button></td><td>' + money(i.price * i.qty) + '</td></tr>').join('');
   $('#total').textContent = money(total()); change();
+  if (!cart.length) delete document.body.dataset.cart;
+  const bar = $('#cartBar');
+  if (bar) {
+    const n = cart.reduce((a, i) => a + i.qty, 0);
+    bar.hidden = !n;
+    $('#cartBarTxt').textContent = '🛒 ' + n + (n === 1 ? ' producto' : ' productos'); $('#cartBarTot').textContent = money(total());
+    bar.classList.remove('bump'); void bar.offsetWidth; if (n) bar.classList.add('bump');
+  }
 }
 function change() { const d = (parseFloat($('#cash').value) || 0) - total(); $('#chg').value = !$('#cash').value ? '$0.00' : d >= 0 ? money(d) : 'Insuficiente'; }
 
@@ -752,7 +845,7 @@ const showBtn = document.createElement('button');
 showBtn.id = 'animeShow'; showBtn.type = 'button'; showBtn.title = 'Mostrar asistente';
 const menu = document.createElement('div');
 menu.id = 'animeMenu'; menu.hidden = true;
-menu.innerHTML = '<button type="button" data-act="sum">📊 Resumen del día</button><button type="button" data-act="low">📦 Stock por reponer</button><button type="button" data-act="debt">🧾 Fiados pendientes</button><button type="button" data-act="swap">🔄 Cambiar asistente</button><button type="button" data-act="hide">🙈 Ocultar asistente</button>';
+menu.innerHTML = '<button type="button" data-act="sum">📊 Resumen del día</button><button type="button" data-act="low">📦 Stock por reponer</button><button type="button" data-act="debt">🧾 Fiados pendientes</button><button type="button" data-act="slow">🐌 Baja rotación</button><button type="button" data-act="swap">🔄 Cambiar asistente</button><button type="button" data-act="hide">🙈 Ocultar asistente</button>';
 document.body.append(menu, showBtn);
 
 function clampPos(x, y) { const w = mascot.offsetWidth, h = mascot.offsetHeight; return [Math.min(Math.max(8, x), innerWidth - w - 8), Math.min(Math.max(8, y), innerHeight - h - 8)]; }
@@ -833,7 +926,7 @@ function assistDebts() {
 menu.onclick = e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   closeMenu();
-  ({sum: assistSummary, low: assistLow, debt: assistDebts, swap: cycleAnime, hide: hideMascot})[b.dataset.act]();
+  ({sum: assistSummary, low: assistLow, debt: assistDebts, slow: assistSlow, swap: cycleAnime, hide: hideMascot})[b.dataset.act]();
 };
 
 /* consejos y avisos automáticos, solo con la sesión abierta */
@@ -843,6 +936,7 @@ function nextTip() {
   if (queue.length) t.push([queue.length + ' venta(s) esperan conexión para sincronizarse', 'alert']);
   if (low) t.push(['Ojo: ' + low + ' producto(s) con stock bajo', 'alert']);
   if (debts.length) t.push(['Tienes ' + debts.length + ' fiado(s) por cobrar', 'pop']);
+  if (slowRows.length) t.push(['🐌 ' + slowRows.length + ' producto(s) casi no se venden (mira Caja)', 'pop']);
   t.push(['Tip: busca por código de barras en el catálogo', 'pop'], ['Tip: usa +$5 / +$10 / +$20 para el vuelto rápido', 'pop'], ['Arrástrame si estorbo, o toca para ver el menú', 'pop']);
   return t[tipN++ % t.length];
 }
@@ -850,6 +944,83 @@ setInterval(() => {
   if (!$('#lock').hidden || mascot.hidden || !menu.hidden || drag || document.visibilityState !== 'visible') return;
   const [txt, type] = nextTip(); setAnime(txt, type);
 }, 45000);
+
+/* ---------- Productos de baja rotación ---------- */
+let slowRows = [], lastSlow = 0;
+async function fetchAllRows(make) {
+  let out = [];
+  for (let i = 0; i < 30000; i += 1000) {
+    const {data, error} = await safe(make(i, i + 999), 20000);
+    if (error) return {error};
+    out = out.concat(data || []);
+    if (!data || data.length < 1000) break;
+  }
+  return {data: out};
+}
+async function loadSoldItems(days) {
+  const since = new Date(Date.now() - days * 864e5).toISOString();
+  let r = await fetchAllRows((a, b) => sb.from('sale_items').select('product_id,quantity,created_at').gte('created_at', since).range(a, b));
+  if (!r.error) return r.data.map(x => ({pid: x.product_id, q: Number(x.quantity) || 0, at: x.created_at}));
+  r = await fetchAllRows((a, b) => sb.from('sales').select('created_at,sale_items(product_id,quantity)').gte('created_at', since).range(a, b));
+  if (r.error) throw r.error;
+  const out = [];
+  r.data.forEach(sale => (sale.sale_items || []).forEach(x => out.push({pid: x.product_id, q: Number(x.quantity) || 0, at: sale.created_at})));
+  return out;
+}
+const fmtDate = t => t ? new Date(t).toLocaleDateString() : '-';
+async function analyzeSlow() {
+  const days = +$('#slowDays').value, max = +$('#slowMax').value, sum = $('#slowSum');
+  if (!sb) { sum.textContent = 'Necesito conexión a Supabase para analizar las ventas.'; return; }
+  sum.textContent = 'Analizando…';
+  let sold;
+  try { sold = await loadSoldItems(days); }
+  catch (e) { sum.textContent = 'No pude leer las ventas: ' + (e.message || e) + '. Revisa que existan las tablas sales y sale_items.'; return; }
+  const cutoff = Date.now() - days * 864e5;
+  queue.forEach(q => { if (q.ts >= cutoff) q.items.forEach(it => sold.push({pid: it.product_id, q: Number(it.quantity) || 0, at: new Date(q.ts).toISOString()})); });
+  const agg = new Map();
+  sold.forEach(x => { const k = String(x.pid), a = agg.get(k) || {q: 0, last: 0}; a.q += x.q; const t = Date.parse(x.at) || 0; if (t > a.last) a.last = t; agg.set(k, a); });
+  slowRows = products
+    .filter(p => p.stock > 0 && !(p.created_at && Date.parse(p.created_at) > cutoff))   // los productos nuevos aún no cuentan
+    .map(p => { const a = agg.get(String(p.id)) || {q: 0, last: 0}; return {p, q: a.q, last: a.last, stuck: p.stock * Number(p.purchase_price || 0)}; })
+    .filter(r => r.q <= max)
+    .sort((a, b) => a.q - b.q || b.stuck - a.stuck);
+  lastSlow = Date.now(); renderSlow(days);
+}
+function renderSlow(days) {
+  const zero = slowRows.filter(r => r.q === 0).length, stuck = slowRows.reduce((a, r) => a + r.stuck, 0);
+  $('#slowSum').textContent = slowRows.length
+    ? slowRows.length + ' producto(s): ' + zero + ' sin ninguna venta y ' + (slowRows.length - zero) + ' con poca salida en ' + days + ' días. Capital parado: ' + money(stuck) + '.'
+    : '¡Bien! Todos tus productos con stock se han vendido más de lo indicado en los últimos ' + days + ' días.';
+  $('#slowT tbody').innerHTML = slowRows.map(r => '<tr><td><b>' + esc(r.p.name) + '</b></td><td><span class="badge ' + (r.q === 0 ? 'zero' : '') + '">' + (r.q === 0 ? 'Sin ventas' : 'Poca rotación') + '</span></td><td>' + r.q + '</td><td>' + r.p.stock + '</td><td>' + (r.last ? fmtDate(r.last) : 'ninguna en ' + days + ' días') + '</td><td>' + money(r.stuck) + '</td></tr>').join('');
+}
+function downloadCSV(name, rows) {
+  const csv = rows.map(r => r.map(c => '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"').join(',')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + csv], {type: 'text/csv'}));
+  a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+async function assistSlow() {
+  tab('rep'); $('#slowCard').scrollIntoView({behavior: 'smooth', block: 'start'});
+  await analyzeSlow();
+  setAnime(slowRows.length ? slowRows.length + ' producto(s) casi no se venden' : 'Todo rota bien', slowRows.length ? 'alert' : 'celebrate');
+}
+$('#slowBtn').onclick = analyzeSlow;
+$('#slowCsv').onclick = () => {
+  if (!slowRows.length) return toast('Primero pulsa Analizar', 1);
+  downloadCSV('baja_rotacion_' + today() + '.csv', [['Producto', 'Estado', 'Vendidos', 'Stock', 'Ultima venta', 'Capital parado']].concat(slowRows.map(r => [r.p.name, r.q === 0 ? 'Sin ventas' : 'Poca rotacion', r.q, r.p.stock, r.last ? fmtDate(r.last) : '', r.stuck.toFixed(2)])));
+};
+
+/* ---------- Móvil: panel de pedido, tablas y formulario plegable ---------- */
+function labelCells(t) {
+  const h = [...t.querySelectorAll('thead th')].map(x => x.textContent);
+  t.querySelectorAll('tbody tr').forEach(r => [...r.children].forEach((c, i) => { if (c.colSpan <= 1 && h[i] !== undefined) c.dataset.label = h[i]; }));
+}
+$$('table.rt').forEach(t => new MutationObserver(() => labelCells(t)).observe(t.querySelector('tbody'), {childList: true}));
+$('#cartBar').onclick = () => { document.body.dataset.cart = 'open'; };
+$('#cartBackdrop').onclick = $('#cartClose').onclick = () => { delete document.body.dataset.cart; };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') delete document.body.dataset.cart; });
+const mqMobile = window.matchMedia ? matchMedia('(max-width:760px)') : {matches: false, addEventListener() {}};
+const syncFold = () => { $('#pFold').open = !mqMobile.matches; };
+syncFold(); if (mqMobile.addEventListener) mqMobile.addEventListener('change', syncFold);
 
 /* ---------- Sincronización automática entre dispositivos ---------- */
 const editingSettings = () => document.activeElement && document.activeElement.closest && document.activeElement.closest('#v-set');
