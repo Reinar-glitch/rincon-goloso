@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rincón Goloso</title>
+<script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" defer></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -125,6 +126,16 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac);back
 @keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
 @media(max-width:760px){nav button.on::before,nav button.on::after{display:none}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+.anime-assistant{position:fixed;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;z-index:50;max-width:min(300px,80vw)}
+.anime-assistant.drag{cursor:grabbing;animation:none!important;box-shadow:0 22px 44px rgba(0,0,0,.3)}
+.anime-speech{white-space:normal;line-height:1.3}
+.eye{translate:var(--ex,0px) var(--ey,0px)}
+#animeMenu{position:fixed;z-index:60;min-width:215px;background:var(--card-bg);color:var(--tx);border:1px solid var(--bd);border-radius:18px;padding:8px;box-shadow:0 20px 40px rgba(0,0,0,.25);display:flex;flex-direction:column;gap:4px;animation:menuIn .25s cubic-bezier(.34,1.56,.64,1)}
+#animeMenu button{background:transparent;color:var(--tx);box-shadow:none;text-align:left;padding:10px 14px;border-radius:12px;font-size:13px}
+#animeMenu button:hover{background:var(--main-bg);transform:none}
+@keyframes menuIn{from{opacity:0;transform:translateY(8px) scale(.92)}}
+#animeShow{position:fixed;right:16px;bottom:16px;z-index:50;width:46px;height:46px;padding:5px;border-radius:50%;background:var(--card-bg);border:1px solid var(--bd);opacity:.85;display:grid;place-items:center}
+@media(max-width:760px){#animeShow{bottom:84px}}
 </style>
 </head>
 <body class="t1">
@@ -238,8 +249,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac);back
       <div class="card"><h3>Supabase (Conexión)</h3><div class="f" style="gap:10px">
         <div class="f"><label for="sUrl">URL de Supabase</label><input id="sUrl" placeholder="https://tu-proyecto.supabase.co" autocomplete="off"></div>
         <div class="f"><label for="sKey">API Key (anon / publishable)</label><input id="sKey" type="password" placeholder="eyJ… o sb_publishable_…" autocomplete="off"></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" id="saveConn">Guardar y probar conexión</button><button type="button" class="sub" id="toggleKey">Ver / ocultar</button></div>
-        <small id="connMsg" style="color:var(--tx2)"></small>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" id="saveConn">Guardar y probar conexión</button><button type="button" class="sub" id="toggleKey">Ver / ocultar</button><button type="button" class="sub" id="copyCfg">Copiar config.js</button><button type="button" class="sub" id="resetConn">Usar config.js</button></div>
+        <small id="connMsg" style="color:var(--tx2)">Para que todos los dispositivos conecten solos: pulsa «Copiar config.js», pégalo en config.js y súbelo a GitHub.</small>
       </div></div>
       <div class="card"><h3>Personalización del Local</h3><div class="f" style="gap:10px">
         <div class="f"><label for="sName">Nombre del Local</label><input id="sName"></div>
@@ -269,8 +280,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac);back
    Pega aquí la URL y la clave ANON (Supabase > Project Settings > API > anon public).
    Nunca uses la service_role en el navegador. */
 const CONFIG = {
-  url: "https://qmynjqbaakpsoetetyfe.supabase.co",
-  key: "", // opcional: normalmente se pega desde Ajustes > Supabase
+  url: (window.RG_CONFIG && window.RG_CONFIG.url) || "https://qmynjqbaakpsoetetyfe.supabase.co",
+  key: (window.RG_CONFIG && window.RG_CONFIG.key) || "", // viene de config.js (compartido por todos los dispositivos)
   bucket: "products",
   timeout: 8000
 };
@@ -289,7 +300,7 @@ const LS = {
 };
 
 /* ---------- Estado: credenciales locales por defecto (login instantáneo) ---------- */
-const DEFAULTS = {user_admin:'GolosoP', pin_admin:'2701', user_caja:'Goloso', pin_caja:'270845', store_name:'Rincón Goloso', store_logo:''};
+const DEFAULTS = {user_admin:'GolosoP', pin_admin:'2701', user_caja:'Goloso', pin_caja:'270845', store_name:'Rincón Goloso', store_logo:'', theme:'t1'};
 let S = Object.assign({}, DEFAULTS, LS.get('rg_settings', {}));
 let sb = null, products = LS.get('rg_products', []), cart = [], debts = [], role = 'admin';
 let queue = LS.get('rg_queue', []), syncing = false, connectTries = 0;
@@ -333,14 +344,9 @@ function setAnime(t, type) {
   const el = $('#animeAssistant'), all = ['a-celebrate', 'a-alert', 'a-pop'];
   el.classList.remove(...all); void el.offsetWidth;
   el.classList.add('a-' + (type || 'pop'));
+  try { requestAnimationFrame(() => typeof applyPos === 'function' && applyPos()); } catch (_) {}
   clearTimeout(setAnime.t); setAnime.t = setTimeout(() => el.classList.remove(...all), 1400);
 }
-$('#animeAssistant').onclick = () => {
-  animeIdx = (animeIdx + 1) % animes.length;
-  $('#animeAvatar').innerHTML = face(animes[animeIdx].c);
-  setAnime('Asistente: ' + animes[animeIdx].n);
-};
-
 let toastTimer;
 function toast(m, err) {
   const t = $('#toast'); t.textContent = m; t.className = err ? 'err' : ''; t.hidden = false;
@@ -359,10 +365,12 @@ function brand() {
   document.title = n;
   ['#hName', '#lName'].forEach(s => $(s).textContent = n);
   ['#nLogo', '#lLogo'].forEach(s => setLogo($(s)));
+  if (!(document.activeElement && document.activeElement.closest && document.activeElement.closest('#v-set'))) {
   $('#sName').value = S.store_name;
   $('#sLogo').value = S.store_logo === 'EMPTY' ? '' : (String(S.store_logo).startsWith('data:') ? '' : S.store_logo);
   $('#sUserAdmin').value = S.user_admin; $('#sPinAdmin').value = S.pin_admin;
   $('#sUserCaja').value = S.user_caja; $('#sPinCaja').value = S.pin_caja;
+  }
 }
 function theme(t) { document.body.className = t; $$('.themes button').forEach(b => b.classList.toggle('on', b.dataset.t === t)); }
 function tab(v) {
@@ -460,13 +468,22 @@ async function bgRefresh() {
   finally { bgBusy = false; }
 }
 
+let settingsDirty = LS.get('rg_settings_dirty', false);
+async function pushSettings() {
+  if (!sb) return {message: 'sin conexión'};
+  const {error} = await safe(sb.from('settings').upsert(Object.keys(DEFAULTS).map(k => ({key: k, value: S[k] == null ? '' : S[k]}))));
+  settingsDirty = !!error; LS.set('rg_settings_dirty', settingsDirty);
+  return error || null;
+}
 async function loadSettingsFromCloud() {
   if (!sb) return;
+  if (settingsDirty) { await pushSettings(); return; } // cambios locales pendientes: primero se suben
   const {data, error} = await safe(sb.from('settings').select('*'));
   if (error || !data || !data.length) return;
   data.forEach(i => { if (i && i.key in DEFAULTS && i.value !== null && i.value !== '') S[i.key] = i.value; else if (i && i.key === 'store_logo') S.store_logo = i.value || ''; });
   LS.set('rg_settings', S);
   brand();
+  theme(LS.get('rg_theme_own', '') || S.theme || 't1');
 }
 
 /* ---------- Imágenes: redimensionar + subir con respaldo local ---------- */
@@ -511,8 +528,9 @@ async function saveSettings() {
     pin_caja: $('#sPinCaja').value.trim() || S.pin_caja
   };
   Object.assign(S, next); LS.set('rg_settings', S); brand(); // local primero: siempre funciona
-  if (!sb) return toast('Guardado localmente. Se sincronizará cuando haya conexión.');
-  const {error} = await safe(sb.from('settings').upsert(Object.keys(next).map(k => ({key: k, value: next[k]}))));
+  settingsDirty = true; LS.set('rg_settings_dirty', true);
+  if (!sb) return toast('Guardado localmente. Se sincronizará con todos los dispositivos al volver la conexión.');
+  const error = await pushSettings();
   if (error) return toast('Guardado local; la nube falló: ' + error.message + (/api key/i.test(error.message) ? '. Revisa la API key en Conexión.' : ''), 1);
   toast('Ajustes sincronizados con la nube');
 }
@@ -658,7 +676,11 @@ async function loadReport() {
 
 /* ---------- Eventos ---------- */
 $$('nav button[data-v]').forEach(b => b.onclick = () => tab(b.dataset.v));
-$$('.themes button').forEach(b => b.onclick = () => theme(b.dataset.t));
+$$('.themes button').forEach(b => b.onclick = () => {
+  const t = b.dataset.t; theme(t);
+  if (role === 'admin') { S.theme = t; LS.set('rg_settings', S); try { localStorage.removeItem('rg_theme_own'); } catch (_) {} settingsDirty = true; LS.set('rg_settings_dirty', true); pushSettings(); }
+  else LS.set('rg_theme_own', t);
+});
 $('#relock').onclick = () => setLocked(true);
 $('#grid').onclick = e => { const b = e.target.closest('.pcard'); if (b) add(b.dataset.id); };
 $('#cart').onclick = e => {
@@ -696,15 +718,140 @@ $('#csv').onclick = () => {
 };
 $('#saveSet').onclick = saveSettings;
 $('#saveConn').onclick = saveConn;
+$('#copyCfg').onclick = async () => {
+  const c = conn(), prob = keyProblem(c.key); if (prob) return toast(prob, 1);
+  const txt = 'window.RG_CONFIG = {\n  url: ' + JSON.stringify(c.url) + ',\n  key: ' + JSON.stringify(c.key) + '\n};\n';
+  try { await navigator.clipboard.writeText(txt); toast('Copiado: pégalo en config.js y súbelo a GitHub'); } catch (_) { prompt('Copia este texto para config.js:', txt); }
+};
+$('#resetConn').onclick = () => { try { localStorage.removeItem('rg_conn'); } catch (_) {} $('#sUrl').value = conn().url; $('#sKey').value = conn().key; resetConn(); toast('Usando la configuración de config.js'); };
 $('#toggleKey').onclick = () => { const k = $('#sKey'); k.type = k.type === 'password' ? 'text' : 'password'; };
 ['#q', '#fcat', '#fsub', '#fbrand'].forEach(s => $(s).oninput = renderGrid);
 window.addEventListener('online', () => { connect(); bgRefresh(); });
 setInterval(() => { if (sb && queue.length) syncQueue(); }, 20000);
 
+/* ---------- Asistente: arrastrable, ocultable y con acciones ---------- */
+const MS = Object.assign({x: null, y: null, hidden: false, idx: 0}, LS.get('rg_mascot', {}));
+const saveMS = () => LS.set('rg_mascot', MS);
+animeIdx = (Number(MS.idx) || 0) % animes.length;
+const mascot = $('#animeAssistant');
+document.body.append(mascot);           // fuera del panel para poder moverlo por toda la pantalla
+mascot.setAttribute('role', 'button'); mascot.tabIndex = 0; mascot.title = 'Clic: menú · Arrastra para moverme';
+const showBtn = document.createElement('button');
+showBtn.id = 'animeShow'; showBtn.type = 'button'; showBtn.title = 'Mostrar asistente';
+const menu = document.createElement('div');
+menu.id = 'animeMenu'; menu.hidden = true;
+menu.innerHTML = '<button type="button" data-act="sum">📊 Resumen del día</button><button type="button" data-act="low">📦 Stock por reponer</button><button type="button" data-act="debt">🧾 Fiados pendientes</button><button type="button" data-act="swap">🔄 Cambiar asistente</button><button type="button" data-act="hide">🙈 Ocultar asistente</button>';
+document.body.append(menu, showBtn);
+
+function clampPos(x, y) { const w = mascot.offsetWidth, h = mascot.offsetHeight; return [Math.min(Math.max(8, x), innerWidth - w - 8), Math.min(Math.max(8, y), innerHeight - h - 8)]; }
+function applyPos() {
+  if (MS.x === null || mascot.hidden) return;
+  const [x, y] = clampPos(MS.x, MS.y);
+  Object.assign(mascot.style, {left: x + 'px', top: y + 'px', right: 'auto', bottom: 'auto'});
+}
+function syncMascotVisibility() { mascot.hidden = !!MS.hidden; showBtn.hidden = !MS.hidden; showBtn.innerHTML = face(animes[animeIdx].c); applyPos(); }
+function closeMenu() { menu.hidden = true; }
+function openMenu() {
+  menu.hidden = false;
+  const r = mascot.getBoundingClientRect(), mw = menu.offsetWidth, mh = menu.offsetHeight;
+  const x = Math.min(Math.max(8, r.right - mw), innerWidth - mw - 8);
+  let y = r.top - mh - 10; if (y < 8) y = r.bottom + 10;
+  menu.style.left = x + 'px'; menu.style.top = y + 'px';
+}
+const toggleMenu = () => menu.hidden ? openMenu() : closeMenu();
+
+/* arrastrar (mouse y táctil); un toque sin mover abre el menú */
+let drag = null;
+mascot.addEventListener('pointerdown', e => {
+  if (e.button > 0) return;
+  const r = mascot.getBoundingClientRect();
+  drag = {sx: e.clientX, sy: e.clientY, ox: r.left, oy: r.top, moved: false};
+  try { mascot.setPointerCapture(e.pointerId); } catch (_) {}
+});
+mascot.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+  if (!drag.moved && Math.hypot(dx, dy) < 6) return;
+  drag.moved = true; mascot.classList.add('drag'); closeMenu();
+  MS.x = drag.ox + dx; MS.y = drag.oy + dy; applyPos();
+});
+mascot.addEventListener('pointerup', () => {
+  if (!drag) return;
+  const moved = drag.moved; drag = null; mascot.classList.remove('drag');
+  if (moved) { const r = mascot.getBoundingClientRect(); MS.x = r.left; MS.y = r.top; saveMS(); } else toggleMenu();
+});
+mascot.addEventListener('pointercancel', () => { drag = null; mascot.classList.remove('drag'); });
+mascot.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMenu(); } });
+document.addEventListener('pointerdown', e => { if (!menu.hidden && !menu.contains(e.target) && !mascot.contains(e.target)) closeMenu(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+window.addEventListener('resize', applyPos);
+
+/* los ojos siguen al cursor */
+document.addEventListener('pointermove', e => {
+  if (mascot.hidden) return;
+  const r = $('#animeAvatar').getBoundingClientRect(), dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+  const d = Math.hypot(dx, dy) || 1, k = Math.min(1, d / 200) * 5;
+  mascot.style.setProperty('--ex', (dx / d * k).toFixed(2) + 'px'); mascot.style.setProperty('--ey', (dy / d * k).toFixed(2) + 'px');
+});
+
+/* acciones del menú */
+function cycleAnime() {
+  animeIdx = (animeIdx + 1) % animes.length; MS.idx = animeIdx; saveMS();
+  $('#animeAvatar').innerHTML = face(animes[animeIdx].c); showBtn.innerHTML = face(animes[animeIdx].c);
+  setAnime('Hola, soy ' + animes[animeIdx].n, 'pop');
+}
+function hideMascot() { MS.hidden = true; saveMS(); syncMascotVisibility(); toast('Asistente oculto. Usa el botón redondo para volver a mostrarlo'); }
+showBtn.onclick = () => { MS.hidden = false; saveMS(); syncMascotVisibility(); setAnime('¡Volví!', 'celebrate'); };
+function assistSummary() {
+  if (!lastReport) return setAnime(sb ? 'Aún estoy cargando el resumen…' : 'Sin conexión: no tengo el resumen de hoy', 'alert');
+  tab('rep');
+  setAnime('Hoy: ' + money(lastReport.total_sales) + ' en ' + lastReport.sales_count + ' ventas (ganancia ' + money(lastReport.total_profit) + ')', 'celebrate');
+}
+function assistLow() {
+  const low = products.filter(p => p.stock <= 5);
+  if (!low.length) return setAnime('¡Todo el stock está bien!', 'celebrate');
+  tab('stock');
+  setAnime(low.length + ' por reponer: ' + low.slice(0, 3).map(p => p.name).join(', ') + (low.length > 3 ? '…' : ''), 'alert');
+}
+function assistDebts() {
+  if (!debts.length) return setAnime('No hay fiados pendientes', 'celebrate');
+  tab('debts');
+  setAnime(debts.length + ' fiado(s) por cobrar, total ' + money(debts.reduce((a, d) => a + Number(d.amount || 0), 0)), 'alert');
+}
+menu.onclick = e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  closeMenu();
+  ({sum: assistSummary, low: assistLow, debt: assistDebts, swap: cycleAnime, hide: hideMascot})[b.dataset.act]();
+};
+
+/* consejos y avisos automáticos, solo con la sesión abierta */
+let tipN = 0;
+function nextTip() {
+  const t = [], low = products.filter(p => p.stock <= 5).length;
+  if (queue.length) t.push([queue.length + ' venta(s) esperan conexión para sincronizarse', 'alert']);
+  if (low) t.push(['Ojo: ' + low + ' producto(s) con stock bajo', 'alert']);
+  if (debts.length) t.push(['Tienes ' + debts.length + ' fiado(s) por cobrar', 'pop']);
+  t.push(['Tip: busca por código de barras en el catálogo', 'pop'], ['Tip: usa +$5 / +$10 / +$20 para el vuelto rápido', 'pop'], ['Arrástrame si estorbo, o toca para ver el menú', 'pop']);
+  return t[tipN++ % t.length];
+}
+setInterval(() => {
+  if (!$('#lock').hidden || mascot.hidden || !menu.hidden || drag || document.visibilityState !== 'visible') return;
+  const [txt, type] = nextTip(); setAnime(txt, type);
+}, 45000);
+
+/* ---------- Sincronización automática entre dispositivos ---------- */
+const editingSettings = () => document.activeElement && document.activeElement.closest && document.activeElement.closest('#v-set');
+setInterval(() => { // respaldo por si Realtime no está activado en Supabase
+  if (!sb || editingSettings()) return;
+  loadSettingsFromCloud();
+  if ($('#lock').hidden) { loadProducts(); loadDebts(); loadReport(); }
+}, 60000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { connect(); bgRefresh(); } });
+
 /* ---------- ARRANQUE: UI primero, red después ---------- */
-brand(); theme('t1');
+brand(); theme(LS.get('rg_theme_own', '') || S.theme || 't1');
 $('#sUrl').value = conn().url; $('#sKey').value = conn().key;
-$('#animeAvatar').innerHTML = face(animes[0].c);
+$('#animeAvatar').innerHTML = face(animes[animeIdx].c); syncMascotVisibility();
 fillFilters(); renderGrid(); updQueueBadge();
 setLocked(true);                       // login disponible al instante
 window.addEventListener('load', connect); // Supabase arranca en segundo plano
