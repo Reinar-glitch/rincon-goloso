@@ -77,6 +77,54 @@ th{color:var(--tx2);font-size:11px;text-transform:uppercase}
 @media print{body>*:not(#ticket){display:none!important}#ticket{display:block!important;width:100%}}
 @media(max-width:900px){body{padding:0}.app-viewport{height:100vh;border-radius:0}}
 @media(max-width:760px){.app-viewport{flex-direction:column}nav{position:fixed;bottom:0;left:0;right:0;width:100%;height:auto;flex-direction:row;justify-content:space-around;padding:8px 0}nav button{border-radius:16px}main{border-radius:0;padding:20px 16px 100px}.pos{grid-template-columns:1fr}.anime-assistant{bottom:84px;right:16px}}
+
+/* ===== 3D, animaciones y mejor visibilidad ===== */
+body{perspective:1400px;font-size:15px}
+body::before,body::after{content:'';position:fixed;border-radius:50%;filter:blur(70px);opacity:.45;z-index:0;pointer-events:none;animation:orb 14s ease-in-out infinite alternate}
+body::before{width:42vmax;height:42vmax;left:-10vmax;top:-12vmax;background:rgba(255,255,255,.55)}
+body::after{width:36vmax;height:36vmax;right:-8vmax;bottom:-12vmax;background:rgba(0,210,211,.5);animation-delay:-6s}
+@keyframes orb{to{transform:translate3d(6vmax,4vmax,0) scale(1.15)}}
+.app-viewport{z-index:1;transform-style:preserve-3d;animation:appIn .7s cubic-bezier(.16,1,.3,1) backwards}
+@keyframes appIn{from{opacity:0;transform:translateY(30px) rotateX(8deg) scale(.97)}}
+.card{transition:transform .3s cubic-bezier(.16,1,.3,1),box-shadow .3s}
+.card:hover{transform:translateY(-3px);box-shadow:0 18px 38px rgba(0,0,0,.12)}
+.view.on{animation:viewIn .45s cubic-bezier(.16,1,.3,1) backwards}
+@keyframes viewIn{from{opacity:0;transform:translateY(14px) scale(.98)}}
+.logo{transition:transform .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 10px 20px rgba(0,0,0,.25)}
+.logo:hover{transform:scale(1.1) rotate(6deg)}
+nav button{transition:color .2s,transform .2s,background .2s}
+nav button:hover:not(:disabled){transform:translateX(4px)}
+nav button.on::before,nav button.on::after{content:'';position:absolute;right:0;width:20px;height:20px;pointer-events:none}
+nav button.on::before{top:-20px;border-bottom-right-radius:20px;box-shadow:8px 8px 0 8px var(--main-bg)}
+nav button.on::after{bottom:-20px;border-top-right-radius:20px;box-shadow:8px -8px 0 8px var(--main-bg)}
+button{transition:transform .2s,filter .2s,box-shadow .2s}
+button:hover:not(:disabled){transform:translateY(-2px) scale(1.02)}
+button:active:not(:disabled){transform:scale(.97)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac);background:var(--card-bg);box-shadow:0 0 0 4px rgba(0,210,211,.18)}
+.grid{perspective:900px}
+.pcard{animation:cardIn .45s cubic-bezier(.34,1.56,.64,1) backwards;animation-delay:calc(var(--i,0)*28ms);transition:transform .25s cubic-bezier(.34,1.56,.64,1),box-shadow .25s,border-color .25s}
+.pcard:hover:not(:disabled){transform:translateY(-6px) rotateX(6deg) scale(1.03);box-shadow:0 16px 28px rgba(0,0,0,.16)}
+.pcard:active:not(:disabled){transform:scale(.96)}
+.pcard span{font-size:16px}
+@keyframes cardIn{from{opacity:0;transform:translateY(16px) scale(.9)}}
+.chart-fill{transform-origin:bottom;animation:grow 1s cubic-bezier(.16,1,.3,1) backwards}
+@keyframes grow{from{transform:scaleY(0)}}
+#lock .card{animation:lockIn .5s cubic-bezier(.34,1.56,.64,1) backwards}
+@keyframes lockIn{from{opacity:0;transform:translateY(24px) scale(.9) rotateX(10deg)}}
+#toast{animation:toastIn .35s cubic-bezier(.34,1.56,.64,1)}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,-14px) scale(.9)}}
+.anime-assistant{animation:float 4s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-6px)}}
+.anime-assistant.a-celebrate{animation:jump .6s ease-in-out 2 alternate;border-color:#05c46b;box-shadow:0 0 25px rgba(5,196,107,.45)}
+@keyframes jump{0%{transform:none}50%{transform:translateY(-18px) scale(1.15) rotate(8deg)}100%{transform:rotate(-8deg)}}
+.anime-assistant.a-alert{animation:shake .4s ease-in-out 2;border-color:#ff3f34;box-shadow:0 0 25px rgba(255,63,52,.45)}
+@keyframes shake{25%{transform:translateX(-8px) rotate(-4deg)}75%{transform:translateX(8px) rotate(4deg)}}
+.anime-assistant.a-pop{animation:popn .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popn{0%{transform:scale(.8)}50%{transform:scale(1.12)}100%{transform:none}}
+.eye{transform-box:fill-box;transform-origin:center;animation:blink 4s infinite}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+@media(max-width:760px){nav button.on::before,nav button.on::after{display:none}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body class="t1">
@@ -187,7 +235,12 @@ th{color:var(--tx2);font-size:11px;text-transform:uppercase}
     </section>
 
     <section id="v-set" class="view"><div class="row" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
-      <div class="card"><h3>Supabase (Conexión)</h3><div class="f"><label for="sUrl">URL de Supabase</label><input id="sUrl" readonly></div></div>
+      <div class="card"><h3>Supabase (Conexión)</h3><div class="f" style="gap:10px">
+        <div class="f"><label for="sUrl">URL de Supabase</label><input id="sUrl" placeholder="https://tu-proyecto.supabase.co" autocomplete="off"></div>
+        <div class="f"><label for="sKey">API Key (anon / publishable)</label><input id="sKey" type="password" placeholder="eyJ… o sb_publishable_…" autocomplete="off"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" id="saveConn">Guardar y probar conexión</button><button type="button" class="sub" id="toggleKey">Ver / ocultar</button></div>
+        <small id="connMsg" style="color:var(--tx2)"></small>
+      </div></div>
       <div class="card"><h3>Personalización del Local</h3><div class="f" style="gap:10px">
         <div class="f"><label for="sName">Nombre del Local</label><input id="sName"></div>
         <div class="f"><label for="sLogoFile">Subir Logotipo</label><input id="sLogoFile" type="file" accept="image/*"></div>
@@ -217,7 +270,7 @@ th{color:var(--tx2);font-size:11px;text-transform:uppercase}
    Nunca uses la service_role en el navegador. */
 const CONFIG = {
   url: "https://qmynjqbaakpsoetetyfe.supabase.co",
-  key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFteW5qcWJhYWtwc29ldGV0eWZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjk0MzY2NzEsImV4cCI6MjA0NTAxMjY3MX0.3lM5fA1xT52T65gKxXG2kM8fOqN3mRk_JmU1a0Z3230",
+  key: "", // opcional: normalmente se pega desde Ajustes > Supabase
   bucket: "products",
   timeout: 8000
 };
@@ -240,6 +293,8 @@ const DEFAULTS = {user_admin:'GolosoP', pin_admin:'2701', user_caja:'Goloso', pi
 let S = Object.assign({}, DEFAULTS, LS.get('rg_settings', {}));
 let sb = null, products = LS.get('rg_products', []), cart = [], debts = [], role = 'admin';
 let queue = LS.get('rg_queue', []), syncing = false, connectTries = 0;
+/* URL y API key: lo guardado en Ajustes tiene prioridad sobre CONFIG */
+const conn = () => { const c = LS.get('rg_conn', {}); return {url: String(c.url || CONFIG.url).trim().replace(/\/+$/, ''), key: String(c.key || CONFIG.key || '').replace(/\s+/g, '')}; };
 
 /* ---------- Utilidades de red ---------- */
 const tmo = (p, ms) => Promise.race([
@@ -248,26 +303,37 @@ const tmo = (p, ms) => Promise.race([
 ]);
 const isNet = e => /fetch|network|timeout|tiempo|failed|offline/i.test(String((e && e.message) || e));
 async function safe(p, ms) { // nunca lanza: devuelve {data, error}
-  try { const r = await tmo(p, ms); return r || {data: null, error: new Error('Sin respuesta')}; }
+  try {
+    const r = await tmo(p, ms);
+    if (r && r.error && /invalid api key/i.test(r.error.message || '')) status('off', 'API key inválida');
+    return r || {data: null, error: new Error('Sin respuesta')};
+  }
   catch (e) { return {data: null, error: e}; }
 }
-function validKey(k) {
+function keyProblem(k) {
+  k = String(k || '').trim();
+  if (!k) return 'Falta la API key (Ajustes > Supabase)';
+  if (/^sb_secret_/.test(k)) return 'Esa es una clave secreta: usa la publishable/anon';
+  if (/^sb_publishable_/.test(k)) return '';
   try {
-    const p = String(k).split('.');
-    if (p.length !== 3) return false;
+    const p = k.split('.');
+    if (p.length !== 3) return 'Formato de API key no válido';
     const j = JSON.parse(atob(p[1].replace(/-/g, '+').replace(/_/g, '/')));
-    return j.role === 'anon';
-  } catch (e) { return false; }
+    if (j.role === 'service_role') return 'Esa es la service_role: usa la anon public';
+    return j.role === 'anon' ? '' : 'La clave debe ser de rol anon';
+  } catch (e) { return 'Formato de API key no válido'; }
 }
 
 /* ---------- Mascota ---------- */
-const face = c => '<svg viewBox="0 0 100 100" width="40" height="40"><circle cx="50" cy="55" r="38" fill="' + c + '" stroke="#0f172a" stroke-width="4"/><circle cx="50" cy="58" r="26" fill="#fff" stroke="#0f172a" stroke-width="3"/><circle cx="42" cy="52" r="4" fill="#0f172a"/><circle cx="58" cy="52" r="4" fill="#0f172a"/><path d="M46 62 Q50 66 54 62" stroke="#0f172a" stroke-width="3" fill="none" stroke-linecap="round"/></svg>';
+const face = c => '<svg viewBox="0 0 100 100" width="40" height="40"><circle cx="24" cy="26" r="12" fill="' + c + '" stroke="#0f172a" stroke-width="4"/><circle cx="76" cy="26" r="12" fill="' + c + '" stroke="#0f172a" stroke-width="4"/><circle cx="50" cy="55" r="38" fill="' + c + '" stroke="#0f172a" stroke-width="4"/><circle cx="50" cy="58" r="26" fill="#fff" stroke="#0f172a" stroke-width="3"/><circle class="eye" cx="42" cy="52" r="4" fill="#0f172a"/><circle class="eye" cx="58" cy="52" r="4" fill="#0f172a"/><path d="M46 62 Q50 66 54 62" stroke="#0f172a" stroke-width="3" fill="none" stroke-linecap="round"/></svg>';
 const animes = [{n:'Yuki', c:'#38bdf8'}, {n:'Choco', c:'#ff9f43'}, {n:'Mimi', c:'#ff6b81'}];
 let animeIdx = 0;
-function setAnime(t) {
+function setAnime(t, type) {
   $('#animeText').textContent = t;
-  const el = $('#animeAssistant'); el.classList.add('go');
-  setTimeout(() => el.classList.remove('go'), 400);
+  const el = $('#animeAssistant'), all = ['a-celebrate', 'a-alert', 'a-pop'];
+  el.classList.remove(...all); void el.offsetWidth;
+  el.classList.add('a-' + (type || 'pop'));
+  clearTimeout(setAnime.t); setAnime.t = setTimeout(() => el.classList.remove(...all), 1400);
 }
 $('#animeAssistant').onclick = () => {
   animeIdx = (animeIdx + 1) % animes.length;
@@ -279,7 +345,7 @@ let toastTimer;
 function toast(m, err) {
   const t = $('#toast'); t.textContent = m; t.className = err ? 'err' : ''; t.hidden = false;
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, 3200);
-  if (err) setAnime('Atención: ' + m);
+  if (err) setAnime('Atención: ' + m, 'alert');
 }
 
 /* ---------- Marca / ajustes ---------- */
@@ -303,6 +369,7 @@ function tab(v) {
   if (role === 'caja' && v === 'set') return toast('Solo el Admin accede a Ajustes', 1);
   $$('nav button[data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === v));
   $$('.view').forEach(s => s.classList.toggle('on', s.id === 'v-' + v));
+  setAnime({pos: 'Punto de venta', debts: 'Gestión de fiados', stock: 'Inventario', rep: 'Reporte de caja', set: 'Ajustes del sistema'}[v] || '');
 }
 function status(mode, t) { const s = $('#st'); s.textContent = t; s.className = 'pill' + (mode === 'ok' ? ' ok' : mode === 'off' ? ' off' : ''); }
 function updQueueBadge() { const b = $('#qBadge'); b.hidden = !queue.length; b.textContent = queue.length + ' venta(s) por sincronizar'; }
@@ -318,7 +385,7 @@ function setLocked(l) {
   ['nav', 'main', '#animeAssistant'].forEach(q => { const el = $(q); l ? el.setAttribute('inert', '') : el.removeAttribute('inert'); });
   document.body.style.overflow = l ? 'hidden' : '';
   if (l) { $('#auth-user').value = ''; $('#auth-pin').value = ''; setTimeout(() => $('#auth-user').focus(), 50); }
-  else { applyPermissions(); setAnime('Modo: ' + (role === 'admin' ? 'Administrador' : 'Socio Comercial')); }
+  else { applyPermissions(); setAnime('Modo: ' + (role === 'admin' ? 'Administrador' : 'Socio Comercial'), 'celebrate'); }
 }
 
 /* ---------- LOGIN (100% local, nunca espera a la red) ---------- */
@@ -329,6 +396,7 @@ function handleLogin() {
   else return toast('Usuario o PIN incorrectos', 1);
   setLocked(false); tab('pos'); renderGrid(); renderStock(); drawCart();
   bgRefresh(); // en segundo plano, sin await
+  if (role === 'admin' && keyProblem(conn().key)) setTimeout(() => { tab('set'); toast('Pega tu API key de Supabase en Ajustes > Conexión', 1); }, 400);
 }
 $('#unlockBtn').onclick = handleLogin;
 $('#auth-pin').onkeydown = $('#auth-user').onkeydown = e => { if (e.key === 'Enter') handleLogin(); };
@@ -342,10 +410,11 @@ function verifyPin(action) {
 /* ---------- Conexión Supabase en segundo plano con reintentos ---------- */
 function connect() {
   if (sb) return;
-  if (!validKey(CONFIG.key)) { status('off', 'Clave API inválida (modo local)'); return; }
+  const c = conn(), prob = keyProblem(c.key);
+  if (prob) { status('off', prob); return; }
   if (!window.supabase) { status('off', 'Modo local'); if (connectTries++ < 30) setTimeout(connect, 5000); return; }
   try {
-    sb = supabase.createClient(CONFIG.url, CONFIG.key, {auth: {persistSession: false, autoRefreshToken: false, detectSessionInUrl: false}});
+    sb = supabase.createClient(c.url, c.key, {auth: {persistSession: false, autoRefreshToken: false, detectSessionInUrl: false}});
     status('ok', 'Conectado');
     setupRealtime();
     bgRefresh();
@@ -354,6 +423,23 @@ function connect() {
     if (connectTries++ < 30) setTimeout(connect, 10000);
   }
 }
+function resetConn() { try { if (sb) sb.removeAllChannels(); } catch (e) {} sb = null; connectTries = 0; connect(); }
+async function testConn() {
+  const m = $('#connMsg');
+  if (!sb) { m.textContent = $('#st').textContent; return false; }
+  const {error} = await safe(sb.from('settings').select('key').limit(1));
+  if (!error) { status('ok', 'Conectado'); m.textContent = 'Conexión correcta ✔'; toast('Conexión con Supabase correcta'); bgRefresh(); return true; }
+  m.textContent = /invalid api key/i.test(error.message) ? 'Supabase rechazó la clave: copia la anon/publishable del mismo proyecto de la URL.' : 'Error: ' + error.message;
+  toast(m.textContent, 1); return false;
+}
+async function saveConn() {
+  if (role !== 'admin') return toast('Solo el Admin Master puede cambiar la conexión', 1);
+  const url = $('#sUrl').value.trim().replace(/\/+$/, ''), key = $('#sKey').value.replace(/\s+/g, '');
+  if (!/^https:\/\/.+/i.test(url)) return toast('La URL debe empezar con https://', 1);
+  const prob = keyProblem(key); if (prob) return toast(prob, 1);
+  LS.set('rg_conn', {url, key}); resetConn(); await testConn();
+}
+
 let rtTimer;
 function setupRealtime() {
   try {
@@ -427,7 +513,7 @@ async function saveSettings() {
   Object.assign(S, next); LS.set('rg_settings', S); brand(); // local primero: siempre funciona
   if (!sb) return toast('Guardado localmente. Se sincronizará cuando haya conexión.');
   const {error} = await safe(sb.from('settings').upsert(Object.keys(next).map(k => ({key: k, value: next[k]}))));
-  if (error) return toast('Guardado local; la nube falló: ' + error.message, 1);
+  if (error) return toast('Guardado local; la nube falló: ' + error.message + (/api key/i.test(error.message) ? '. Revisa la API key en Conexión.' : ''), 1);
   toast('Ajustes sincronizados con la nube');
 }
 
@@ -448,8 +534,8 @@ function fillFilters() {
 function renderGrid() {
   const q = $('#q').value.toLowerCase(), c = $('#fcat').value, s = $('#fsub').value, b = $('#fbrand').value;
   const list = products.filter(p => (!q || String(p.name).toLowerCase().includes(q) || (p.barcode || '').includes(q)) && (!c || p.category === c) && (!s || p.subtype === s) && (!b || p.brand === b));
-  $('#grid').innerHTML = list.length ? list.map(p =>
-    '<button class="pcard" data-id="' + esc(p.id) + '" ' + (p.stock < 1 ? 'disabled' : '') + '>' +
+  $('#grid').innerHTML = list.length ? list.map((p, ix) =>
+    '<button class="pcard" style="--i:' + Math.min(ix, 20) + '" data-id="' + esc(p.id) + '" ' + (p.stock < 1 ? 'disabled' : '') + '>' +
     (p.image_url ? '<img loading="lazy" src="' + esc(p.image_url) + '" alt="">' : '<div class="ph">IMG</div>') +
     '<b>' + esc(p.name) + '</b><small>' + esc(p.subtype || p.category || '') + '</small><span>' + money(p.sale_price) + '</span></button>').join('')
     : '<p style="color:var(--tx2)">Sin productos en inventario.</p>';
@@ -473,7 +559,7 @@ async function saveProduct(e) {
     purchase_price: +$('#pp').value, sale_price: +$('#pv').value, stock: +$('#pst').value, image_url
   }));
   if (error) return toast(error.message, 1);
-  e.target.reset(); toast('Producto guardado'); setAnime('Producto guardado'); loadProducts();
+  e.target.reset(); toast('Producto guardado'); setAnime('Producto guardado', 'celebrate'); loadProducts();
 }
 
 /* ---------- Carrito ---------- */
@@ -523,7 +609,7 @@ async function pay(printIt) {
     toast('Sin conexión: venta guardada localmente y se enviará sola');
   } else toast('Venta registrada');
   if (printIt) ticket(t, cash);
-  cart = []; drawCart(); $('#cash').value = ''; $('#cust').value = ''; setAnime('Venta emitida');
+  cart = []; drawCart(); $('#cash').value = ''; $('#cust').value = ''; setAnime('Venta emitida', 'celebrate');
   if (!queued) { loadProducts(); loadReport(); }
 }
 async function syncQueue() {
@@ -555,7 +641,7 @@ async function saveDebt(e) {
   if (!sb) return toast('Sin conexión: no se puede guardar el fiado todavía', 1);
   const {error} = await safe(sb.from('debts').insert({customer_name: $('#dn').value.trim(), amount: +$('#da').value, details: $('#dt').value.trim()}));
   if (error) return toast(error.message, 1);
-  e.target.reset(); toast('Fiado registrado'); loadDebts(); setAnime('Fiado guardado');
+  e.target.reset(); toast('Fiado registrado'); loadDebts(); setAnime('Fiado guardado', 'celebrate');
 }
 
 /* ---------- Reporte ---------- */
@@ -592,7 +678,7 @@ $('#debts').onclick = async e => {
   if (!verifyPin('cobrar o borrar este fiado')) return;
   const {error} = await safe(sb.from('debts').update({paid: true}).eq('id', b.dataset.payDebt));
   if (error) return toast(error.message, 1);
-  toast('Fiado cobrado / borrado'); loadDebts(); setAnime('Cuenta saldada');
+  toast('Fiado cobrado / borrado'); loadDebts(); setAnime('Cuenta saldada', 'celebrate');
 };
 $('#stockT').onclick = async e => {
   const b = e.target.closest('[data-del-prod]'); if (!b || !sb) return;
@@ -609,13 +695,15 @@ $('#csv').onclick = () => {
   a.download = 'reporte_' + today() + '.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 };
 $('#saveSet').onclick = saveSettings;
+$('#saveConn').onclick = saveConn;
+$('#toggleKey').onclick = () => { const k = $('#sKey'); k.type = k.type === 'password' ? 'text' : 'password'; };
 ['#q', '#fcat', '#fsub', '#fbrand'].forEach(s => $(s).oninput = renderGrid);
 window.addEventListener('online', () => { connect(); bgRefresh(); });
 setInterval(() => { if (sb && queue.length) syncQueue(); }, 20000);
 
 /* ---------- ARRANQUE: UI primero, red después ---------- */
 brand(); theme('t1');
-$('#sUrl').value = CONFIG.url;
+$('#sUrl').value = conn().url; $('#sKey').value = conn().key;
 $('#animeAvatar').innerHTML = face(animes[0].c);
 fillFilters(); renderGrid(); updQueueBadge();
 setLocked(true);                       // login disponible al instante
